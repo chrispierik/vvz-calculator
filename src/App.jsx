@@ -9,15 +9,7 @@ import LeadForm from './components/LeadForm.jsx'
 
 function Logo() {
   return (
-    <div className="flex items-center gap-3">
-      <svg width="32" height="36" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 2C2 1.45 2.45 1 3 1H29C29.55 1 30 1.45 30 2L16 35L2 2Z" fill="#0b349d" />
-        <path d="M16 23V13M11 18L16 13L21 18" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      <span className="font-bold text-base sm:text-lg text-gray-900 tracking-tight">
-        verzekerverzuim<span className="text-accent">.nl</span>
-      </span>
-    </div>
+    <img src="/logo.svg" alt="verzekerverzuim.nl" className="h-9 w-auto" />
   )
 }
 
@@ -64,12 +56,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-page font-sans text-gray-900">
       {/* Header */}
-      <header className="border-b border-muted bg-white">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header style={{ backgroundColor: '#0b349d' }}>
+        <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <Logo />
           <a
             href="https://verzekerverzuim.nl"
-            className="text-xs text-gray-400 hover:text-accent transition-colors"
+            className="text-xs text-white/70 hover:text-white transition-colors"
           >
             Meer informatie →
           </a>
