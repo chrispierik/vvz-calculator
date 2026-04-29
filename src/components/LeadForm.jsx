@@ -3,7 +3,7 @@ import { useState } from 'react'
 function Field({ label, id, type = 'text', value, onChange, required, placeholder }) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-400 mb-1.5">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-600 mb-1.5">
         {label} {required && <span className="text-accent">*</span>}
       </label>
       <input
@@ -13,7 +13,7 @@ function Field({ label, id, type = 'text', value, onChange, required, placeholde
         onChange={(e) => onChange(e.target.value)}
         required={required}
         placeholder={placeholder}
-        className="w-full bg-card-2 border border-muted rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm transition-all duration-200 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+        className="w-full bg-card-2 border border-muted rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 text-sm transition-all duration-200 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
       />
     </div>
   )
@@ -36,10 +36,10 @@ export default function LeadForm({ onSubmit }) {
   return (
     <div className="bg-card border border-muted rounded-2xl p-6 sm:p-8 mb-6 animate-fade-up">
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-white mb-1">
+        <h2 className="text-xl font-bold text-gray-900 mb-1">
           Vraag gratis offertes aan bij 6 verzekeraars
         </h2>
-        <p className="text-gray-400 text-sm">
+        <p className="text-gray-500 text-sm">
           Binnen 24 uur de beste offertes in uw inbox — zonder verdere verplichtingen.
         </p>
       </div>
@@ -91,7 +91,7 @@ export default function LeadForm({ onSubmit }) {
           )}
         </button>
 
-        <p className="text-xs text-gray-600 text-center">
+        <p className="text-xs text-gray-400 text-center">
           Geen spam. U ontvangt het verzuimrapport + offertes per e-mail.
         </p>
       </form>

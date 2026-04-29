@@ -3,7 +3,7 @@ import { BRANCHES } from '../data/branches.js'
 export default function BrancheSelect({ value, onChange }) {
   return (
     <div className="mb-6">
-      <label className="block text-sm font-medium text-gray-400 mb-2">
+      <label className="block text-sm font-medium text-gray-500 mb-2">
         In welke branche is uw bedrijf actief?
       </label>
       <select
@@ -11,13 +11,13 @@ export default function BrancheSelect({ value, onChange }) {
         onChange={(e) => onChange(e.target.value)}
         className={`w-full bg-card-2 border rounded-xl px-4 py-3.5 text-base font-medium appearance-none cursor-pointer transition-all duration-200 pr-10 ${
           value
-            ? 'border-accent text-white'
-            : 'border-muted text-gray-500'
+            ? 'border-accent text-gray-900'
+            : 'border-muted text-gray-400'
         } focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent`}
       >
         <option value="" disabled>Selecteer uw branche</option>
         {BRANCHES.map((b) => (
-          <option key={b.id} value={b.id} className="text-white bg-card-2">
+          <option key={b.id} value={b.id} className="text-gray-900 bg-card-2">
             {b.label}
           </option>
         ))}

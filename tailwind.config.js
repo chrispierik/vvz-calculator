@@ -4,12 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        accent: '#378ADD',
-        'accent-hover': '#2a6fcc',
-        page: '#0a0a0a',
-        card: '#111111',
-        'card-2': '#181818',
-        muted: '#2a2a2a',
+        accent: '#0b349d',
+        'accent-hover': '#092a7a',
+        page: '#ffffff',
+        card: '#f8fafc',
+        'card-2': '#f1f5f9',
+        muted: '#e2e8f0',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
