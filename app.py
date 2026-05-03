@@ -12,12 +12,18 @@ st.set_page_config(
 )
 
 # ── State ──────────────────────────────────────────────────────────────────────
-for k, v in {"submitted": False, "loonsom_touched": False}.items():
+defaults = {
+    "page":                "calculator",
+    "submitted":           False,
+    "result_verzuimklasse": None,
+    "result_wachtweken":   None,
+    "result_loonsom":      800_000,
+    "result_huidige_premie": 0,
+    "_onze_premie":        None,
+}
+for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
-
-def mark_loonsom():
-    st.session_state.loonsom_touched = True
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 ACCENT = "#0b349d"
@@ -38,7 +44,7 @@ st.markdown(f"""
 #MainMenu, footer, header {{ visibility: hidden; }}
 .block-container {{
     padding: 0 1rem 4rem !important;
-    max-width: 720px !important;
+    max-width: 680px !important;
 }}
 html, body, [class*="css"] {{
     font-family: 'Inter', sans-serif !important;
@@ -46,6 +52,7 @@ html, body, [class*="css"] {{
 }}
 .stApp {{ background: #ffffff; }}
 
+/* Header */
 .vvz-header {{
     background-color: {ACCENT};
     padding: 14px 24px;
@@ -58,20 +65,20 @@ html, body, [class*="css"] {{
     color: rgba(255,255,255,0.7);
     text-decoration: none;
     font-size: 12px;
-    transition: color 0.2s;
 }}
 .vvz-header a.meer:hover {{ color: #fff; }}
 
+/* Hero */
 .vvz-hero {{
     text-align: center;
-    padding: 36px 0 24px;
+    padding: 32px 0 20px;
 }}
 .vvz-hero h1 {{
-    font-size: 34px;
+    font-size: 32px;
     font-weight: 900;
     color: #111827;
     line-height: 1.2;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }}
 .vvz-hero .accent {{ color: {ACCENT}; }}
 .vvz-hero p {{
@@ -81,178 +88,298 @@ html, body, [class*="css"] {{
     margin: 0 auto;
 }}
 
-.vvz-progress {{
+/* Step indicator */
+.step-indicator {{
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-}}
-.step-wrap {{
-    display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
 }}
-.step-circle {{
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 600;
-    border: 2px solid #e2e8f0;
-    color: #4b5563;
-    background: transparent;
+.step-pill {{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
 }}
-.step-circle.done {{ background: {ACCENT}; border-color: {ACCENT}; color: #fff; }}
-.step-circle.active {{ border-color: {ACCENT}; color: {ACCENT}; }}
-.step-label {{ font-size: 12px; font-weight: 500; color: #6b7280; margin-top: 6px; }}
-.step-label.hi {{ color: {ACCENT}; }}
-.step-connector {{
-    width: 80px; height: 2px; background: #e2e8f0;
-    margin: 17px 8px 0; overflow: hidden; position: relative;
+.step-pill.active {{
+    background: {ACCENT};
+    color: white;
 }}
-.step-connector-fill {{
-    position: absolute; top: 0; left: 0;
-    height: 100%; background: {ACCENT};
+.step-pill.done {{
+    background: #dcfce7;
+    color: #16a34a;
+}}
+.step-pill.inactive {{
+    background: #f1f5f9;
+    color: #9ca3af;
+}}
+.step-arrow {{
+    color: #d1d5db;
+    font-size: 14px;
 }}
 
-.calc-card {{
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+/* Input card */
+.input-card {{
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
     border-radius: 16px;
-    padding: 24px 28px;
+    padding: 28px 28px 20px;
     margin-bottom: 16px;
 }}
-.calc-sep {{ border: none; border-top: 1px solid #e2e8f0; margin: 0 0 20px; }}
-.slider-row {{ display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }}
-.slider-lbl {{ font-size: 14px; font-weight: 500; color: #4b5563; }}
-.slider-sub {{ font-size: 12px; color: #9ca3af; margin-top: 2px; }}
-.slider-val {{ font-size: 19px; font-weight: 700; color: #111827; text-align: right; }}
-.slider-minmax {{ display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; margin-top: 2px; margin-bottom: 6px; }}
+.input-section {{
+    margin-bottom: 24px;
+}}
+.input-section:last-child {{
+    margin-bottom: 8px;
+}}
+.input-lbl {{
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+    display: block;
+}}
+.input-hint {{
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 10px;
+    display: block;
+}}
+.input-optional {{
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-left: 8px;
+}}
+.input-sep {{
+    border: none;
+    border-top: 1px solid #f1f5f9;
+    margin: 4px 0 24px;
+}}
 
-.stSelectbox label {{ font-size: 14px !important; font-weight: 500 !important; color: #4b5563 !important; }}
-.stNumberInput label {{ font-size: 14px !important; font-weight: 500 !important; color: #4b5563 !important; }}
+/* Make selectboxes prominent */
+.stSelectbox [data-baseweb="select"] > div:first-child {{
+    background-color: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 10px !important;
+    min-height: 52px !important;
+    padding: 0 16px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: #111827 !important;
+    cursor: pointer !important;
+}}
+.stSelectbox [data-baseweb="select"] > div:first-child:hover {{
+    border-color: {ACCENT} !important;
+}}
+.stSelectbox label {{ display: none !important; }}
+
+/* Slider */
+.slider-row {{ display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }}
+.slider-val {{ font-size: 20px; font-weight: 800; color: {ACCENT}; }}
+.slider-minmax {{ display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; margin-top: 4px; }}
+
+/* Number input */
+.stNumberInput label {{ display: none !important; }}
 .stNumberInput input {{
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
     border-radius: 10px !important;
     font-size: 15px !important;
+    font-weight: 500 !important;
     font-family: 'Inter', sans-serif !important;
     color: #111827 !important;
+    min-height: 52px !important;
+    padding: 0 16px !important;
 }}
 .stNumberInput input:focus {{
     border-color: {ACCENT} !important;
     box-shadow: 0 0 0 1px {ACCENT} !important;
-}}
-.premie-hint {{
-    font-size: 12px;
-    color: #9ca3af;
-    margin-top: 4px;
-    margin-bottom: 0;
+    outline: none !important;
 }}
 
+/* CTA button */
+div[data-testid="stFormSubmitButton"] button,
+.stButton > button {{
+    width: 100% !important;
+    background-color: {ACCENT} !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    font-family: 'Inter', sans-serif !important;
+    letter-spacing: 0.01em !important;
+    transition: background-color 0.2s !important;
+    margin-top: 4px !important;
+}}
+div[data-testid="stFormSubmitButton"] button:hover,
+.stButton > button:hover {{
+    background-color: #092a7a !important;
+}}
+.stButton > button:disabled {{
+    background-color: #e2e8f0 !important;
+    color: #9ca3af !important;
+}}
+
+/* Results */
 .savings-card {{
-    background: #f8fafc;
-    border: 1px solid rgba(11,52,157,0.2);
+    background: linear-gradient(135deg, rgba(11,52,157,0.05) 0%, #f8fafc 60%);
+    border: 1.5px solid rgba(11,52,157,0.2);
     border-radius: 16px;
-    padding: 32px 24px;
+    padding: 36px 28px;
     text-align: center;
-    margin-bottom: 12px;
-    background-image: linear-gradient(135deg, rgba(11,52,157,0.04) 0%, transparent 60%);
+    margin-bottom: 16px;
 }}
 .savings-tag {{
-    font-size: 11px; font-weight: 700; color: {ACCENT};
-    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
-}}
-.savings-amount {{
-    font-size: 52px; font-weight: 900; color: #111827;
-    letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 6px;
-}}
-.savings-note {{ font-size: 14px; color: #6b7280; }}
-.aanvraag-card {{
-    background: #f8fafc;
-    border: 1px solid rgba(11,52,157,0.2);
-    border-radius: 16px;
-    padding: 32px 24px;
-    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: {ACCENT};
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     margin-bottom: 12px;
 }}
-.metric-grid {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }}
-.metric-card {{ background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; }}
-.metric-lbl {{
-    font-size: 10px; font-weight: 600; color: #9ca3af;
-    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;
+.savings-amount {{
+    font-size: 56px;
+    font-weight: 900;
+    color: #111827;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
 }}
-.metric-val {{ font-size: 22px; font-weight: 700; color: #111827; }}
+.savings-note {{
+    font-size: 15px;
+    color: #6b7280;
+}}
+.aanvraag-card {{
+    background: #f8fafc;
+    border: 1.5px solid rgba(11,52,157,0.2);
+    border-radius: 16px;
+    padding: 36px 28px;
+    text-align: center;
+    margin-bottom: 16px;
+}}
+.metric-grid {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 16px 0; }}
+.metric-card {{
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+}}
+.metric-lbl {{
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 6px;
+}}
+.metric-val {{ font-size: 20px; font-weight: 800; color: #111827; }}
 .metric-val.green {{ color: #16a34a; }}
-.metric-sub {{ font-size: 11px; color: #9ca3af; margin-top: 2px; }}
-.results-cta {{ text-align: center; font-size: 14px; color: #6b7280; margin-bottom: 20px; }}
+.metric-sub {{ font-size: 11px; color: #9ca3af; margin-top: 3px; }}
+.results-cta {{
+    text-align: center;
+    font-size: 13px;
+    color: #9ca3af;
+    margin: 4px 0 0;
+}}
 
-.form-header {{ margin-bottom: 20px; }}
-.form-header h2 {{ font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px; }}
-.form-header p {{ font-size: 14px; color: #6b7280; }}
-
+/* Lead form */
+.form-card {{
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px 28px 20px;
+    margin-bottom: 16px;
+}}
+.form-header h2 {{
+    font-size: 20px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 6px;
+}}
+.form-header p {{
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 20px;
+}}
+.stTextInput label {{
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+}}
 .stTextInput input {{
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
     border-radius: 10px !important;
     font-size: 14px !important;
     font-family: 'Inter', sans-serif !important;
     color: #111827 !important;
+    min-height: 46px !important;
 }}
 .stTextInput input:focus {{
     border-color: {ACCENT} !important;
     box-shadow: 0 0 0 1px {ACCENT} !important;
 }}
-.stTextInput label {{
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #4b5563 !important;
-}}
 
-div[data-testid="stFormSubmitButton"] button, .stButton > button {{
-    width: 100% !important;
-    background-color: {ACCENT} !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 14px !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    font-family: 'Inter', sans-serif !important;
-    transition: background-color 0.2s !important;
-}}
-div[data-testid="stFormSubmitButton"] button:hover, .stButton > button:hover {{
-    background-color: #092a7a !important;
-}}
-
+/* Success */
 .success-card {{
     background: #f8fafc;
-    border: 1px solid rgba(34,197,94,0.3);
+    border: 1.5px solid rgba(34,197,94,0.3);
     border-radius: 16px;
-    padding: 36px 24px;
+    padding: 40px 24px;
     text-align: center;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }}
 .success-icon {{
-    width: 56px; height: 56px;
+    width: 60px; height: 60px;
     background: rgba(34,197,94,0.1);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 14px;
+    margin: 0 auto 16px;
 }}
-.success-card h2 {{ font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 6px; }}
-.success-card p {{ font-size: 14px; color: #6b7280; max-width: 320px; margin: 0 auto 16px; }}
+.success-card h2 {{ font-size: 22px; font-weight: 800; color: #111827; margin-bottom: 8px; }}
+.success-card p {{ font-size: 14px; color: #6b7280; max-width: 320px; margin: 0 auto 20px; }}
 .success-badge {{
     display: inline-block;
     background: rgba(34,197,94,0.1);
-    border: 1px solid rgba(34,197,94,0.2);
+    border: 1px solid rgba(34,197,94,0.25);
     border-radius: 10px;
-    padding: 8px 18px;
-    font-size: 13px; font-weight: 500; color: #16a34a;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #16a34a;
 }}
 
+/* Back link */
+.back-link {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: {ACCENT};
+    cursor: pointer;
+    margin-bottom: 20px;
+    text-decoration: none;
+}}
+
+/* Disclaimer & footer */
 .vvz-disclaimer {{
-    font-size: 11px; color: #9ca3af; text-align: center; line-height: 1.6;
-    border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 8px;
+    font-size: 11px;
+    color: #9ca3af;
+    text-align: center;
+    line-height: 1.7;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+    margin-top: 8px;
     font-style: italic;
 }}
 .vvz-footer {{
@@ -268,265 +395,295 @@ div[data-testid="stFormSubmitButton"] button:hover, .stButton > button:hover {{
 """, unsafe_allow_html=True)
 
 
-# ── HTML helpers ───────────────────────────────────────────────────────────────
-def render_progress(completed: int) -> str:
-    steps = ["Verzuim", "Loonsom", "Premie"]
-    check = """<svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>"""
-    html = '<div class="vvz-progress">'
-    for i, label in enumerate(steps):
-        done   = i < completed
-        active = i == completed
-        c_cls  = "step-circle done" if done else ("step-circle active" if active else "step-circle")
-        l_cls  = "step-label hi" if (done or active) else "step-label"
-        html += f"""
-        <div class="step-wrap">
-            <div class="{c_cls}">{check if done else i + 1}</div>
-            <div class="{l_cls}">{label}</div>
-        </div>"""
-        if i < len(steps) - 1:
-            fill = "100%" if done else "0%"
-            html += f"""
-        <div class="step-connector">
-            <div class="step-connector-fill" style="width:{fill}"></div>
-        </div>"""
-    return html + "</div>"
-
-
-def render_results(results: dict, verzuimklasse: str, wachtweken: int) -> str:
-    rate      = results["rate"]
-    onze      = results["onzePremie"]
-    huidige   = results["huidigePremie"]
-    besparing = results["besparing"]
-    bes_pct   = results["besparingPct"]
-
-    if huidige and besparing is not None:
-        bes_display = max(0, besparing)
-        pct_display = max(0.0, bes_pct) if bes_pct is not None else 0.0
-        main = f"""
-        <div class="savings-card">
-            <div class="savings-tag">Geschatte jaarlijkse besparing</div>
-            <div class="savings-amount">{format_currency(bes_display)}</div>
-            <div class="savings-note">{pct_display:.0f}% minder dan uw huidige premie</div>
-        </div>
-        <div class="metric-grid">
-            <div class="metric-card">
-                <div class="metric-lbl">Uw huidige premie</div>
-                <div class="metric-val">{format_currency(huidige)}</div>
-                <div class="metric-sub">per jaar</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-lbl">Premie met ons</div>
-                <div class="metric-val green">{format_currency(onze)}</div>
-                <div class="metric-sub">{rate:.3f}% van loonsom</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-lbl">Wachttijd</div>
-                <div class="metric-val">{wachtweken} wkn</div>
-                <div class="metric-sub">Klasse {verzuimklasse}</div>
-            </div>
-        </div>"""
-    else:
-        main = f"""
-        <div class="savings-card">
-            <div class="savings-tag">Uw premie bij verzekerverzuim.nl</div>
-            <div class="savings-amount">{format_currency(onze)}</div>
-            <div class="savings-note">{rate:.3f}% van uw jaarloonsom · {wachtweken} weken wachttijd</div>
-        </div>
-        <div class="metric-grid">
-            <div class="metric-card">
-                <div class="metric-lbl">Premiepercentage</div>
-                <div class="metric-val green">{rate:.3f}%</div>
-                <div class="metric-sub">van jaarloonsom</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-lbl">Verzuimklasse</div>
-                <div class="metric-val">{verzuimklasse}</div>
-                <div class="metric-sub">gemiddeld 3 jaar</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-lbl">Wachttijd</div>
-                <div class="metric-val">{wachtweken} wkn</div>
-                <div class="metric-sub">eigen risico</div>
-            </div>
-        </div>"""
-
-    return main + """<p class="results-cta">
-        Mandaat Fysiotherapie 100%/100%/70%/70% · database van 6 verzekeraars
-    </p>"""
-
-
-def render_op_aanvraag() -> str:
-    return """
-    <div class="aanvraag-card">
-        <div class="savings-tag">Maatwerk offerte</div>
-        <div style="font-size:28px; font-weight:800; color:#111827; margin-bottom:8px;">
-            Op aanvraag
-        </div>
-        <div class="savings-note">
-            Bij een verzuimpercentage van 8% of hoger stellen wij een persoonlijke offerte op.
-            Vul het formulier in — u ontvangt binnen 24 uur een berekening op maat.
-        </div>
-    </div>"""
-
-
-def render_success(onze_premie: float | None) -> str:
-    badge = f'<div class="success-badge">Uw premie met ons: {format_currency(onze_premie)} per jaar</div>' if onze_premie else '<div class="success-badge">Offerte op maat volgt binnen 24 uur</div>'
-    return f"""
-    <div class="success-card">
-        <div class="success-icon">
-            <svg width="28" height="28" fill="none" stroke="#16a34a" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-        </div>
-        <h2>Aanvraag ontvangen!</h2>
-        <p>U ontvangt binnen 24 uur uw persoonlijke verzuimrapport met offertes in uw inbox.</p>
-        {badge}
-    </div>"""
-
-
-# ── Layout ─────────────────────────────────────────────────────────────────────
-
-# Header
+# ── Shared: header ─────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="vvz-header">
     <a href="https://verzekerverzuim.nl">{LOGO_SVG}</a>
     <a class="meer" href="https://verzekerverzuim.nl">Meer informatie →</a>
 </div>""", unsafe_allow_html=True)
 
-# Hero
-st.markdown("""
-<div class="vvz-hero">
-    <h1>Hoeveel kun jij besparen<br><span class="accent">als fysiotherapeut?</span></h1>
-    <p>Beantwoord 3 vragen. Wij berekenen je premie op basis van
-    jouw verzuimprofiel — direct en zonder verplichtingen.</p>
-</div>""", unsafe_allow_html=True)
 
-# Read session state for progress
-verzuim_key  = st.session_state.get("verzuim_select",  "Selecteer...")
-wachttijd_key = st.session_state.get("wachttijd_select", None)
-premie_key   = st.session_state.get("premie_input", 0) or 0
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 1 — CALCULATOR
+# ══════════════════════════════════════════════════════════════════════════════
+if st.session_state.page == "calculator":
 
-steps_done = (
-    (1 if (verzuim_key != "Selecteer..." and wachttijd_key is not None) else 0)
-    + (1 if st.session_state.loonsom_touched else 0)
-    + (1 if premie_key > 0 else 0)
-)
+    st.markdown("""
+    <div class="vvz-hero">
+        <h1>Hoeveel kun jij besparen<br><span class="accent">als fysiotherapeut?</span></h1>
+        <p>Vul onderstaande gegevens in en ontdek direct wat jij kunt besparen op je verzuimverzekering.</p>
+    </div>""", unsafe_allow_html=True)
 
-st.markdown(render_progress(steps_done), unsafe_allow_html=True)
+    st.markdown("""
+    <div class="step-indicator">
+        <div class="step-pill active">① Uw gegevens</div>
+        <div class="step-arrow">→</div>
+        <div class="step-pill inactive">② Uw besparing</div>
+    </div>""", unsafe_allow_html=True)
 
-# ── Calculator card ────────────────────────────────────────────────────────────
-st.markdown('<div class="calc-card">', unsafe_allow_html=True)
+    st.markdown('<div class="input-card">', unsafe_allow_html=True)
 
-# Verzuim inputs (two columns)
-col_l, col_r = st.columns(2)
-with col_l:
+    # --- Input 1: Verzuimklasse ---
+    st.markdown("""
+    <div class="input-section">
+        <span class="input-lbl">Wat is uw gemiddeld verzuimpercentage?</span>
+        <span class="input-hint">Het gemiddelde ziekteverzuim van uw praktijk over de afgelopen 3 jaar.
+        Twijfelt u? Kies dan een klasse hoger.</span>
+    </div>""", unsafe_allow_html=True)
+
     verzuimklasse = st.selectbox(
-        "Gemiddeld verzuim (afgelopen 3 jaar)",
-        ["Selecteer..."] + VERZUIM_KLASSEN,
+        "verzuim",
+        ["Selecteer uw verzuimklasse..."] + VERZUIM_KLASSEN,
         key="verzuim_select",
+        label_visibility="collapsed",
     )
-with col_r:
+
+    st.markdown('<hr class="input-sep">', unsafe_allow_html=True)
+
+    # --- Input 2: Wachttijd ---
+    st.markdown("""
+    <div class="input-section">
+        <span class="input-lbl">Hoeveel weken wachttijd heeft u nu?</span>
+        <span class="input-hint">Dit is het aantal weken eigen risico op uw huidige polis.
+        Staat vermeld op uw polisblad of factuur.</span>
+    </div>""", unsafe_allow_html=True)
+
     wachtweken = st.selectbox(
-        "Wachttijd huidige polis",
+        "wachttijd",
         WACHTWEKEN_OPTIES,
         format_func=lambda x: f"{x} weken",
         key="wachttijd_select",
         index=None,
-        placeholder="Selecteer...",
+        placeholder="Selecteer uw wachttijd...",
+        label_visibility="collapsed",
     )
 
-st.markdown('<hr class="calc-sep">', unsafe_allow_html=True)
+    st.markdown('<hr class="input-sep">', unsafe_allow_html=True)
 
-# Loonsom slider
-loonsom_val = st.session_state.get("loonsom_slider", 800_000)
-st.markdown(f"""
-<div class="slider-row">
-    <div>
-        <div class="slider-lbl">Totale bruto jaarloonsom</div>
-        <div class="slider-sub">Inclusief alle medewerkers</div>
-    </div>
-    <div class="slider-val">{format_currency(loonsom_val)}</div>
-</div>""", unsafe_allow_html=True)
-loonsom = st.slider(
-    "loonsom", 100_000, 3_000_000, 800_000, 50_000,
-    key="loonsom_slider", on_change=mark_loonsom, label_visibility="collapsed",
-)
-st.markdown(f"""<div class="slider-minmax">
-    <span>{format_currency(100_000)}</span>
-    <span>{format_currency(3_000_000)}</span>
-</div>""", unsafe_allow_html=True)
-
-st.markdown('<hr class="calc-sep">', unsafe_allow_html=True)
-
-# Huidige premie (optional)
-huidige_premie = st.number_input(
-    "Uw huidige jaarpremie (€) — optioneel",
-    min_value=0,
-    max_value=500_000,
-    step=500,
-    value=None,
-    placeholder="bijv. 12500",
-    key="premie_input",
-)
-huidige_premie = huidige_premie or 0
-st.markdown(
-    '<p class="premie-hint">Staat op uw factuur of polisblad · vul in voor een besparingesschatting</p>',
-    unsafe_allow_html=True,
-)
-
-verzuim_ok = verzuimklasse != "Selecteer..." and wachtweken is not None
-if not verzuim_ok:
-    st.markdown(
-        '<p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:8px">'
-        'Selecteer uw verzuimklasse en wachttijd om uw premie te berekenen</p>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-# ── Results & lead form ────────────────────────────────────────────────────────
-if verzuim_ok and not st.session_state.submitted:
-    results = calculate_fysio(loonsom, verzuimklasse, wachtweken, huidige_premie)
-
-    if results is None:
-        st.markdown(render_op_aanvraag(), unsafe_allow_html=True)
-        onze_premie_for_success = None
-    else:
-        st.markdown(render_results(results, verzuimklasse, wachtweken), unsafe_allow_html=True)
-        onze_premie_for_success = results["onzePremie"]
-
-    # Lead form (always shown)
-    st.markdown('<div class="calc-card">', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="form-header">
-        <h2>Vraag gratis offertes aan bij 6 verzekeraars</h2>
-        <p>Binnen 24 uur de beste offertes voor fysiotherapeuten in uw inbox — zonder verdere verplichtingen.</p>
+    # --- Input 3: Loonsom ---
+    loonsom_val = st.session_state.get("loonsom_slider", 800_000)
+    st.markdown(f"""
+    <div class="input-section">
+        <div class="slider-row">
+            <span class="input-lbl" style="margin-bottom:0">Totale bruto jaarloonsom</span>
+            <span class="slider-val">{format_currency(loonsom_val)}</span>
+        </div>
+        <span class="input-hint">De totale loonkosten van alle medewerkers in uw praktijk per jaar.</span>
     </div>""", unsafe_allow_html=True)
 
-    with st.form("lead_form"):
-        c1, c2 = st.columns(2)
-        with c1:
-            naam    = st.text_input("Naam *",         placeholder="Jan de Vries")
-        with c2:
-            bedrijf = st.text_input("Praktijknaam *", placeholder="Fysiotherapie Centrum")
-        email    = st.text_input("E-mailadres *",    placeholder="jan@mijnpraktijk.nl")
-        telefoon = st.text_input("Telefoonnummer",   placeholder="06 12 34 56 78")
-        submitted = st.form_submit_button("Ontvang mijn gratis offertes →")
-        if submitted:
-            st.session_state.submitted = True
-            st.session_state._onze_premie = onze_premie_for_success
-            st.rerun()
+    loonsom = st.slider(
+        "loonsom", 100_000, 3_000_000, 800_000, 50_000,
+        key="loonsom_slider", label_visibility="collapsed",
+    )
+    st.markdown(f"""<div class="slider-minmax">
+        <span>{format_currency(100_000)}</span>
+        <span>{format_currency(3_000_000)}</span>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown('<hr class="input-sep">', unsafe_allow_html=True)
+
+    # --- Input 4: Huidige premie (optioneel) ---
+    st.markdown("""
+    <div class="input-section">
+        <span class="input-lbl">Wat betaalt u nu per jaar?
+            <span class="input-optional">Optioneel</span>
+        </span>
+        <span class="input-hint">Vul uw huidige jaarpremie in voor een besparingsschatting.
+        Staat op uw polis of factuur — u kunt dit ook leeg laten.</span>
+    </div>""", unsafe_allow_html=True)
+
+    huidige_premie = st.number_input(
+        "premie",
+        min_value=0,
+        max_value=500_000,
+        step=500,
+        value=None,
+        placeholder="bijv. 12.500",
+        key="premie_input",
+        label_visibility="collapsed",
+    )
+    huidige_premie = huidige_premie or 0
+
+    st.markdown("</div>", unsafe_allow_html=True)  # /input-card
+
+    # --- Bereken knop ---
+    all_required = (
+        verzuimklasse != "Selecteer uw verzuimklasse..."
+        and wachtweken is not None
+    )
+
+    if st.button(
+        "Bereken mijn besparing →",
+        use_container_width=True,
+        disabled=not all_required,
+    ):
+        st.session_state.result_verzuimklasse  = verzuimklasse
+        st.session_state.result_wachtweken     = wachtweken
+        st.session_state.result_loonsom        = loonsom
+        st.session_state.result_huidige_premie = huidige_premie
+        st.session_state.page = "results"
+        st.rerun()
+
+    if not all_required:
         st.markdown(
-            '<p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:4px">'
-            'Geen spam. U ontvangt het verzuimrapport + offertes per e-mail.</p>',
+            '<p style="text-align:center;font-size:13px;color:#9ca3af;margin-top:8px">'
+            'Selecteer uw verzuimklasse en wachttijd om door te gaan</p>',
             unsafe_allow_html=True,
         )
-    st.markdown("</div>", unsafe_allow_html=True)
 
-elif st.session_state.submitted:
-    onze_premie_stored = st.session_state.get("_onze_premie", None)
-    st.markdown(render_success(onze_premie_stored), unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 2 — RESULTS
+# ══════════════════════════════════════════════════════════════════════════════
+elif st.session_state.page == "results":
+
+    # Back button
+    if st.button("← Terug naar gegevens", use_container_width=False):
+        st.session_state.page = "calculator"
+        st.session_state.submitted = False
+        st.rerun()
+
+    # Read stored values
+    verzuimklasse  = st.session_state.result_verzuimklasse
+    wachtweken     = st.session_state.result_wachtweken
+    loonsom        = st.session_state.result_loonsom
+    huidige_premie = st.session_state.result_huidige_premie
+
+    results = calculate_fysio(loonsom, verzuimklasse, wachtweken, huidige_premie)
+
+    if not st.session_state.submitted:
+
+        st.markdown("""
+        <div class="step-indicator">
+            <div class="step-pill done">✓ Uw gegevens</div>
+            <div class="step-arrow">→</div>
+            <div class="step-pill active">② Uw besparing</div>
+        </div>""", unsafe_allow_html=True)
+
+        # Results card
+        if results is None:
+            # 8%+ → op aanvraag
+            st.markdown("""
+            <div class="aanvraag-card">
+                <div class="savings-tag">Op aanvraag</div>
+                <div style="font-size:30px;font-weight:900;color:#111827;margin-bottom:10px;">Maatwerk offerte</div>
+                <div class="savings-note">Bij een verzuim van 8% of hoger stellen wij een persoonlijke offerte op.
+                Vul het formulier in — u ontvangt binnen 24 uur een berekening op maat.</div>
+            </div>""", unsafe_allow_html=True)
+            onze_premie_display = None
+
+        else:
+            rate      = results["rate"]
+            onze      = results["onzePremie"]
+            huidige   = results["huidigePremie"]
+            besparing = results["besparing"]
+            bes_pct   = results["besparingPct"]
+            onze_premie_display = onze
+
+            if huidige and besparing is not None:
+                bes_display = max(0, besparing)
+                pct_display = max(0.0, bes_pct) if bes_pct is not None else 0.0
+                st.markdown(f"""
+                <div class="savings-card">
+                    <div class="savings-tag">Uw geschatte jaarlijkse besparing</div>
+                    <div class="savings-amount">{format_currency(bes_display)}</div>
+                    <div class="savings-note">{pct_display:.0f}% minder dan uw huidige premie</div>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-lbl">Uw huidige premie</div>
+                        <div class="metric-val">{format_currency(huidige)}</div>
+                        <div class="metric-sub">per jaar</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-lbl">Premie met ons</div>
+                        <div class="metric-val green">{format_currency(onze)}</div>
+                        <div class="metric-sub">{rate:.3f}% van loonsom</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-lbl">Wachttijd</div>
+                        <div class="metric-val">{wachtweken} wkn</div>
+                        <div class="metric-sub">klasse {verzuimklasse}</div>
+                    </div>
+                </div>
+                <p class="results-cta">Mandaat Fysiotherapie 100%/100%/70%/70% · 6 verzekeraars</p>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="savings-card">
+                    <div class="savings-tag">Uw premie bij verzekerverzuim.nl</div>
+                    <div class="savings-amount">{format_currency(onze)}</div>
+                    <div class="savings-note">{rate:.3f}% van uw jaarloonsom · {wachtweken} weken wachttijd</div>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-lbl">Premiepercentage</div>
+                        <div class="metric-val green">{rate:.3f}%</div>
+                        <div class="metric-sub">van jaarloonsom</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-lbl">Verzuimklasse</div>
+                        <div class="metric-val">{verzuimklasse}</div>
+                        <div class="metric-sub">gemiddeld 3 jaar</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-lbl">Wachttijd</div>
+                        <div class="metric-val">{wachtweken} wkn</div>
+                        <div class="metric-sub">eigen risico</div>
+                    </div>
+                </div>
+                <p class="results-cta">Mandaat Fysiotherapie 100%/100%/70%/70% · 6 verzekeraars</p>
+                """, unsafe_allow_html=True)
+
+        # Lead form
+        st.markdown('<div class="form-card">', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="form-header">
+            <h2>Ontvang gratis offertes van 6 verzekeraars</h2>
+            <p>Vul uw gegevens in en ontvang binnen 24 uur persoonlijke offertes in uw inbox — vrijblijvend en zonder verplichtingen.</p>
+        </div>""", unsafe_allow_html=True)
+
+        with st.form("lead_form"):
+            c1, c2 = st.columns(2)
+            with c1:
+                naam    = st.text_input("Naam *",          placeholder="Jan de Vries")
+            with c2:
+                bedrijf = st.text_input("Praktijknaam *",  placeholder="Fysiotherapie Centrum")
+            email    = st.text_input("E-mailadres *",       placeholder="jan@mijnpraktijk.nl")
+            telefoon = st.text_input("Telefoonnummer",      placeholder="06 12 34 56 78")
+            submitted = st.form_submit_button("Stuur mij de offertes →")
+            if submitted:
+                st.session_state.submitted = True
+                st.session_state._onze_premie = onze_premie_display
+                st.rerun()
+            st.markdown(
+                '<p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:6px">'
+                'Geen spam · Uw gegevens worden niet gedeeld met derden</p>',
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    else:
+        # Success state
+        onze_premie_stored = st.session_state.get("_onze_premie", None)
+        badge = (
+            f'<div class="success-badge">Uw premie met ons: {format_currency(onze_premie_stored)} per jaar</div>'
+            if onze_premie_stored
+            else '<div class="success-badge">Uw offerte op maat volgt binnen 24 uur</div>'
+        )
+        st.markdown(f"""
+        <div class="success-card">
+            <div class="success-icon">
+                <svg width="30" height="30" fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h2>Aanvraag ontvangen!</h2>
+            <p>U ontvangt binnen 24 uur uw persoonlijke verzuimrapport met offertes van 6 verzekeraars in uw inbox.</p>
+            {badge}
+        </div>""", unsafe_allow_html=True)
+
 
 # ── Disclaimer ─────────────────────────────────────────────────────────────────
 st.markdown("""
