@@ -1,6 +1,6 @@
 import streamlit as st
 from calculations import (
-    calculate_fysio, VERZUIM_KLASSEN, WACHTWEKEN_OPTIES,
+    calculate_fysio, WACHTDAGEN_OPTIES, DEFAULT_WACHTDAGEN,
     format_currency, MARKT_GEMIDDELD,
 )
 
@@ -13,8 +13,7 @@ st.set_page_config(
 for k, v in {
     "page": "calculator",
     "submitted": False,
-    "result_verzuimklasse": None,
-    "result_wachtweken": None,
+    "result_wachtdagen": DEFAULT_WACHTDAGEN,
     "result_loonsom": 800_000,
     "result_current_pct": MARKT_GEMIDDELD,
     "_onze_premie": None,
@@ -446,30 +445,17 @@ if st.session_state.page == "calculator":
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
-    # Vraag 1
-    st.markdown("""
-    <span class="q-label">Hoe hoog is het ziekteverzuim in uw praktijk?</span>
-    <span class="q-hint">Kijk naar het gemiddelde van de afgelopen 3 jaar.
-    Weet u het niet precies? Kies dan de klasse iets hoger.</span>
-    """, unsafe_allow_html=True)
-    verzuimklasse = st.selectbox(
-        "verzuim", ["Kies uw verzuimpercentage..."] + VERZUIM_KLASSEN,
-        key="verzuim_select", label_visibility="collapsed",
-    )
-
-    st.markdown('<hr class="q-sep">', unsafe_allow_html=True)
-
-    # Vraag 2
+    # Vraag 1 — wachttijd (default: 30 dagen)
     st.markdown("""
     <span class="q-label">Hoelang betaalt u zelf het loon door als iemand ziek is?</span>
-    <span class="q-hint">Dit noemen we de wachttijd. Het staat op uw polisblad als
-    "eigen risico" of "wachttijd". Weet u het niet? Bel ons even.</span>
+    <span class="q-hint">Dit staat op uw polisblad als "wachttijd" of "eigen risico periode".
+    Weet u het niet? Kies dan 30 wachtdagen — dat is het meest voorkomend.</span>
     """, unsafe_allow_html=True)
-    wachtweken = st.selectbox(
-        "wachttijd", WACHTWEKEN_OPTIES,
-        format_func=lambda x: f"{x} weken",
-        key="wachttijd_select", index=None,
-        placeholder="Kies uw wachttijd...",
+    wachtdagen = st.selectbox(
+        "wachttijd", WACHTDAGEN_OPTIES,
+        format_func=lambda x: f"{x} wachtdagen",
+        key="wachttijd_select",
+        index=WACHTDAGEN_OPTIES.index(DEFAULT_WACHTDAGEN),
         label_visibility="collapsed",
     )
 
@@ -533,30 +519,17 @@ if st.session_state.page == "calculator":
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    all_required = (
-        verzuimklasse != "Kies uw verzuimpercentage..."
-        and wachtweken is not None
-    )
-
-    if st.button("Bereken mijn besparing →", use_container_width=True, disabled=not all_required):
-        # Als exacte euros ingevuld: reken terug naar %; anders gebruik slider
+    if st.button("Bereken mijn besparing →", use_container_width=True):
         if huidige_premie_euros and huidige_premie_euros > 0 and loonsom > 0:
             effective_pct = (huidige_premie_euros / loonsom) * 100
         else:
             effective_pct = current_pct
-        st.session_state.result_verzuimklasse = verzuimklasse
-        st.session_state.result_wachtweken    = wachtweken
-        st.session_state.result_loonsom       = loonsom
-        st.session_state.result_current_pct   = effective_pct
+        st.session_state.result_wachtdagen  = wachtdagen
+        st.session_state.result_loonsom     = loonsom
+        st.session_state.result_current_pct = effective_pct
         st.session_state.page = "results"
         st.rerun()
 
-    if not all_required:
-        st.markdown(
-            '<p style="text-align:center;font-size:13px;color:#9ca3af;margin-top:10px">'
-            'Kies eerst uw verzuimpercentage en wachttijd om verder te gaan</p>',
-            unsafe_allow_html=True,
-        )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -572,12 +545,11 @@ elif st.session_state.page == "results":
 
     st.markdown(step_bar(1), unsafe_allow_html=True)
 
-    verzuimklasse = st.session_state.result_verzuimklasse
-    wachtweken    = st.session_state.result_wachtweken
-    loonsom       = st.session_state.result_loonsom
-    current_pct   = st.session_state.result_current_pct
+    wachtdagen  = st.session_state.result_wachtdagen
+    loonsom     = st.session_state.result_loonsom
+    current_pct = st.session_state.result_current_pct
 
-    results = calculate_fysio(loonsom, verzuimklasse, wachtweken, current_pct)
+    results = calculate_fysio(loonsom, wachtdagen, current_pct)
 
     if results is None:
         # 8%+ → op aanvraag
