@@ -14,18 +14,23 @@ WACHTWEKEN_OPTIES = [2, 4, 6, 13, 26, 52]
 VERZUIM_KLASSEN   = list(VERZUIM_RATES.keys())
 
 
-def calculate_fysio(loonsom, verzuimklasse, wachtweken, huidige_premie=0):
+MARKT_GEMIDDELD = 5.8  # Gemiddeld premiepercentage fysiotherapeuten in de markt
+
+
+def calculate_fysio(loonsom, verzuimklasse, wachtweken, current_pct=MARKT_GEMIDDELD):
     rates = VERZUIM_RATES.get(verzuimklasse)
     if rates is None:
         return None
-    rate      = rates[wachtweken]
-    onze      = loonsom * (rate / 100)
-    besparing = (huidige_premie - onze) if huidige_premie > 0 else None
-    bes_pct   = (besparing / huidige_premie * 100) if besparing is not None else None
+    our_rate  = rates[wachtweken]
+    onze      = loonsom * (our_rate / 100)
+    huidig    = loonsom * (current_pct / 100)
+    besparing = huidig - onze
+    bes_pct   = (besparing / huidig * 100) if huidig > 0 else 0
     return {
-        "rate":          rate,
+        "our_rate":      our_rate,
+        "current_pct":   current_pct,
         "onzePremie":    onze,
-        "huidigePremie": huidige_premie if huidige_premie > 0 else None,
+        "huidigePremie": huidig,
         "besparing":     besparing,
         "besparingPct":  bes_pct,
     }

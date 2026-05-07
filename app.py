@@ -1,7 +1,7 @@
 import streamlit as st
 from calculations import (
     calculate_fysio, VERZUIM_KLASSEN, WACHTWEKEN_OPTIES,
-    format_currency,
+    format_currency, MARKT_GEMIDDELD,
 )
 
 st.set_page_config(
@@ -16,7 +16,7 @@ for k, v in {
     "result_verzuimklasse": None,
     "result_wachtweken": None,
     "result_loonsom": 800_000,
-    "result_huidige_premie": 0,
+    "result_current_pct": MARKT_GEMIDDELD,
     "_onze_premie": None,
 }.items():
     if k not in st.session_state:
@@ -495,20 +495,41 @@ if st.session_state.page == "calculator":
 
     st.markdown('<hr class="q-sep">', unsafe_allow_html=True)
 
-    # Vraag 4 (optioneel)
-    st.markdown("""
-    <span class="q-label">Wat betaalt u nu per jaar voor uw verzuimverzekering?
-        <span class="q-optional">Optioneel</span>
-    </span>
-    <span class="q-hint">Staat op uw laatste factuur van uw verzekeraar.
-    Laat leeg als u het niet weet — u ziet dan toch al wat u bij ons kunt betalen.</span>
+    # Vraag 4 — huidig premiepercentage (slider, default marktgemiddelde)
+    current_pct = st.session_state.get("current_pct_slider", MARKT_GEMIDDELD)
+    huidig_euros = loonsom * (current_pct / 100)
+    st.markdown(f"""
+    <div class="slider-top">
+        <span class="q-label" style="margin-bottom:0">Welk premiepercentage betaalt u nu?</span>
+        <span class="slider-amount">{current_pct:.1f}%</span>
+    </div>
+    <span class="q-hint">Het gemiddelde in de markt is <strong>{MARKT_GEMIDDELD}%</strong> —
+    weet u uw exacte tarief? Pas de slider dan aan.</span>
     """, unsafe_allow_html=True)
-    huidige_premie = st.number_input(
-        "premie", min_value=0, max_value=500_000, step=500,
+    current_pct = st.slider(
+        "current_pct", 0.0, 8.0, MARKT_GEMIDDELD, 0.1,
+        key="current_pct_slider", label_visibility="collapsed",
+        format="%.1f%%",
+    )
+    huidig_euros = loonsom * (current_pct / 100)
+    st.markdown(f"""
+    <div style="text-align:right; font-size:13px; color:#6b7280; margin-top:4px;">
+        = circa {format_currency(huidig_euros)} per jaar
+    </div>""", unsafe_allow_html=True)
+
+    # Kleinere optionele euros-invoer onderaan
+    st.markdown("""
+    <div style="margin-top:20px;">
+        <span style="font-size:13px;font-weight:600;color:#6b7280;">
+            Of: weet u uw exacte jaarpremie?
+            <span class="q-optional">Optioneel</span>
+        </span>
+    </div>""", unsafe_allow_html=True)
+    huidige_premie_euros = st.number_input(
+        "premie_euros", min_value=0, max_value=500_000, step=500,
         value=None, placeholder="bijv. 12.500",
         key="premie_input", label_visibility="collapsed",
     )
-    huidige_premie = huidige_premie or 0
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -518,10 +539,15 @@ if st.session_state.page == "calculator":
     )
 
     if st.button("Bereken mijn besparing →", use_container_width=True, disabled=not all_required):
-        st.session_state.result_verzuimklasse  = verzuimklasse
-        st.session_state.result_wachtweken     = wachtweken
-        st.session_state.result_loonsom        = loonsom
-        st.session_state.result_huidige_premie = huidige_premie
+        # Als exacte euros ingevuld: reken terug naar %; anders gebruik slider
+        if huidige_premie_euros and huidige_premie_euros > 0 and loonsom > 0:
+            effective_pct = (huidige_premie_euros / loonsom) * 100
+        else:
+            effective_pct = current_pct
+        st.session_state.result_verzuimklasse = verzuimklasse
+        st.session_state.result_wachtweken    = wachtweken
+        st.session_state.result_loonsom       = loonsom
+        st.session_state.result_current_pct   = effective_pct
         st.session_state.page = "results"
         st.rerun()
 
@@ -546,14 +572,15 @@ elif st.session_state.page == "results":
 
     st.markdown(step_bar(1), unsafe_allow_html=True)
 
-    verzuimklasse  = st.session_state.result_verzuimklasse
-    wachtweken     = st.session_state.result_wachtweken
-    loonsom        = st.session_state.result_loonsom
-    huidige_premie = st.session_state.result_huidige_premie
+    verzuimklasse = st.session_state.result_verzuimklasse
+    wachtweken    = st.session_state.result_wachtweken
+    loonsom       = st.session_state.result_loonsom
+    current_pct   = st.session_state.result_current_pct
 
-    results = calculate_fysio(loonsom, verzuimklasse, wachtweken, huidige_premie)
+    results = calculate_fysio(loonsom, verzuimklasse, wachtweken, current_pct)
 
     if results is None:
+        # 8%+ → op aanvraag
         st.markdown("""
         <div class="aanvraag-card">
             <div class="result-tag">Persoonlijke berekening nodig</div>
@@ -568,54 +595,34 @@ elif st.session_state.page == "results":
         onze_premie_display = None
 
     else:
-        rate    = results["rate"]
-        onze    = results["onzePremie"]
-        huidige = results["huidigePremie"]
-        bes     = results["besparing"]
-        bes_pct = results["besparingPct"]
+        our_rate  = results["our_rate"]
+        onze      = results["onzePremie"]
+        huidig    = results["huidigePremie"]
+        besparing = results["besparing"]
+        bes_pct   = results["besparingPct"]
+        bes_show  = max(0, besparing)
+        pct_show  = max(0.0, bes_pct)
         onze_premie_display = onze
 
-        if huidige and bes is not None:
-            bes_show = max(0, bes)
-            pct_show = max(0.0, bes_pct) if bes_pct else 0.0
-            st.markdown(f"""
-            <div class="result-card">
-                <div class="result-tag">Dit kunt u mogelijk besparen via verzekerverzuim.nl</div>
-                <div class="result-amount">{format_currency(bes_show)}</div>
-                <div class="result-sub">per jaar — {pct_show:.0f}% minder dan u nu betaalt</div>
-                <div class="result-detail">
-                    <div class="result-detail-item">
-                        <div class="result-detail-lbl">U betaalt nu</div>
-                        <div class="result-detail-val">{format_currency(huidige)}</div>
-                    </div>
-                    <div class="result-detail-item" style="color:#d1d5db;font-size:24px;font-weight:300;padding-top:8px;">→</div>
-                    <div class="result-detail-item">
-                        <div class="result-detail-lbl">Met ons betaalt u</div>
-                        <div class="result-detail-val green">{format_currency(onze)}</div>
-                    </div>
+        st.markdown(f"""
+        <div class="result-card">
+            <div class="result-tag">U kunt mogelijk dit bedrag besparen via verzekerverzuim.nl</div>
+            <div class="result-amount">{format_currency(bes_show)}</div>
+            <div class="result-sub">per jaar — {pct_show:.0f}% minder dan u nu betaalt</div>
+            <div class="result-detail">
+                <div class="result-detail-item">
+                    <div class="result-detail-lbl">U betaalt nu</div>
+                    <div class="result-detail-val">{format_currency(huidig)}</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">{current_pct:.1f}%</div>
                 </div>
-            </div>""", unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="result-card">
-                <div class="result-tag">Zo laag kan uw premie zijn via verzekerverzuim.nl</div>
-                <div class="result-amount">{format_currency(onze)}</div>
-                <div class="result-sub">per jaar — op basis van uw verzuimprofiel</div>
-                <div class="result-detail">
-                    <div class="result-detail-item">
-                        <div class="result-detail-lbl">Premiepercentage</div>
-                        <div class="result-detail-val green">{rate:.3f}%</div>
-                    </div>
-                    <div class="result-detail-item">
-                        <div class="result-detail-lbl">Verzuimklasse</div>
-                        <div class="result-detail-val">{verzuimklasse}</div>
-                    </div>
-                    <div class="result-detail-item">
-                        <div class="result-detail-lbl">Wachttijd</div>
-                        <div class="result-detail-val">{wachtweken} wkn</div>
-                    </div>
+                <div class="result-detail-item" style="color:#d1d5db;font-size:24px;font-weight:300;padding-top:8px;">→</div>
+                <div class="result-detail-item">
+                    <div class="result-detail-lbl">Met ons betaalt u</div>
+                    <div class="result-detail-val green">{format_currency(onze)}</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">{our_rate:.3f}%</div>
                 </div>
-            </div>""", unsafe_allow_html=True)
+            </div>
+        </div>""", unsafe_allow_html=True)
 
     st.session_state._onze_premie = onze_premie_display
 
