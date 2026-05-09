@@ -149,95 +149,8 @@ p.q-helper {
 .stSlider [data-baseweb="slider"] [data-testid="stSliderTrackFill"] { background: #015EE1 !important; }
 div[data-testid="stSlider"] label { display: none !important; }
 
-/* ── Chips (quick-pick) ── */
-.chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
-.chip {
-    padding: 7px 14px; border-radius: 999px;
-    border: 1px solid #DCE0EC;
-    background: #fff;
-    color: #2A3454;
-    font-size: 13px; font-weight: 500;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: all .15s;
-}
-.chip:hover { background: #0B1530; color: #fff; border-color: #0B1530; }
-.chip.selected { background: #0B1530; color: #fff; border-color: #0B1530; }
-
-/* ── Segmented radio (verzuim) ── */
-div.seg-wrap { margin-top: 36px; }
-div.seg-wrap > div[data-testid="stRadio"] > label { display: none !important; }
-div.seg-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] {
-    display: flex !important;
-    background: #F5F7FB !important;
-    border-radius: 16px !important;
-    padding: 6px !important;
-    gap: 4px !important;
-    flex-wrap: nowrap !important;
-}
-div.seg-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] > label {
-    flex: 1 !important;
-    padding: 14px 4px !important;
-    border-radius: 12px !important;
-    background: transparent !important;
-    cursor: pointer !important;
-    font-size: 15px !important;
-    font-weight: 500 !important;
-    color: #5A6488 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    letter-spacing: -.01em !important;
-}
-div.seg-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] > label:has(input:checked) {
-    background: white !important;
-    color: #0B1530 !important;
-    font-weight: 700 !important;
-    box-shadow: 0 1px 3px rgba(11,21,48,.08) !important;
-}
-div.seg-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] > label [data-baseweb="radio"] { display: none !important; }
-
-/* ── Tile radio (wachttijd) ── */
-div.tile-wrap { margin-top: 36px; }
-div.tile-wrap > div[data-testid="stRadio"] > label { display: none !important; }
-div.tile-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] {
-    display: grid !important;
-    grid-template-columns: repeat(6, 1fr) !important;
-    gap: 10px !important;
-}
-div.tile-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] > label {
-    padding: 22px 6px 16px !important;
-    border-radius: 16px !important;
-    border: 1.5px solid #EBEEF5 !important;
-    background: #fff !important;
-    cursor: pointer !important;
-    text-align: center !important;
-    font-size: 26px !important;
-    font-weight: 700 !important;
-    color: #0B1530 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: all .15s !important;
-}
-div.tile-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] > label:has(input:checked) {
-    border-color: #015EE1 !important;
-    background: #F4F7FD !important;
-    color: #1040C5 !important;
-}
-div.tile-wrap > div[data-testid="stRadio"] > div[role="radiogroup"] > label [data-baseweb="radio"] { display: none !important; }
-
-/* ── Navigation buttons ── */
-div.nav-back button {
-    background: transparent !important;
-    color: #5A6488 !important;
-    border: none !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    padding: 10px 0 !important;
-}
-div.nav-back button:hover { color: #0B1530 !important; }
-div.nav-next button {
+/* ── Navigation & CTA buttons ── */
+button[kind="primary"] {
     background: #1ABC9C !important;
     color: #fff !important;
     border: none !important;
@@ -245,16 +158,62 @@ div.nav-next button {
     font-size: 15px !important;
     font-weight: 700 !important;
     padding: 14px 26px !important;
-    width: 100% !important;
     box-shadow: 0 12px 28px -10px rgba(26,188,156,.5) !important;
     transition: background .2s !important;
 }
-div.nav-next button:hover { background: #16A085 !important; }
-div.nav-next button:disabled {
+button[kind="primary"]:hover { background: #16A085 !important; }
+button[kind="primary"]:disabled {
     background: #EBEEF5 !important;
     color: #8089A8 !important;
     box-shadow: none !important;
-    cursor: not-allowed !important;
+}
+button[kind="secondary"] {
+    background: transparent !important;
+    color: #5A6488 !important;
+    border: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    padding: 10px 4px !important;
+    box-shadow: none !important;
+}
+button[kind="secondary"]:hover {
+    background: transparent !important;
+    color: #0B1530 !important;
+    border: none !important;
+}
+
+/* ── Pills (loonsom chips) ── */
+[data-testid="stPillsInput"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    margin-top: 20px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+[data-testid="stPillsInput"] button {
+    padding: 7px 14px !important;
+    border-radius: 999px !important;
+    border: 1px solid #DCE0EC !important;
+    background: #fff !important;
+    color: #2A3454 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    transition: all .15s !important;
+    width: auto !important;
+}
+[data-testid="stPillsInput"] button:hover {
+    background: #0B1530 !important;
+    color: #fff !important;
+    border-color: #0B1530 !important;
+}
+[data-testid="stPillsInput"] button[aria-pressed="true"] {
+    background: #0B1530 !important;
+    color: #fff !important;
+    border-color: #0B1530 !important;
 }
 
 /* ── Result hero card ── */
@@ -427,15 +386,12 @@ def nav(back_lbl="← Terug", next_lbl="Volgende →", next_disabled=False, next
     st.markdown('<div style="margin-top:48px;"></div>', unsafe_allow_html=True)
     col_b, col_n = st.columns([1, 2])
     with col_b:
-        st.markdown('<div class="nav-back">', unsafe_allow_html=True)
-        if st.button(back_lbl, key=back_key):
+        if st.button(back_lbl, key=back_key, type="secondary"):
             go_back()
-        st.markdown('</div>', unsafe_allow_html=True)
     with col_n:
-        st.markdown('<div class="nav-next">', unsafe_allow_html=True)
-        if st.button(next_lbl, key=next_key, disabled=next_disabled, use_container_width=True):
+        if st.button(next_lbl, key=next_key, disabled=next_disabled,
+                     type="primary", use_container_width=True):
             go_next()
-        st.markdown('</div>', unsafe_allow_html=True)
 
 def verzuim_label(v):
     mapping = {"0-2": "0–2%", "2-4": "2–4%", "4-6": "4–6%", "6-8": "6–8%", "8+": "8%+", "unk": "gem."}
@@ -515,8 +471,41 @@ if step == 1:
         "Kijk naar het gemiddelde van de laatste 3 jaar. Bij twijfel: kies de klasse iets hoger."
     ), unsafe_allow_html=True)
 
+    # Step-specific CSS: style this radio as a segmented control
+    st.markdown("""<style>
+    [data-testid="stRadio"] [role="radiogroup"] {
+        display: flex !important;
+        background: #F5F7FB !important;
+        border-radius: 16px !important;
+        padding: 6px !important;
+        gap: 4px !important;
+        flex-wrap: nowrap !important;
+        margin-top: 36px !important;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label {
+        flex: 1 !important;
+        padding: 14px 4px !important;
+        border-radius: 12px !important;
+        background: transparent !important;
+        cursor: pointer !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
+        color: #5A6488 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        letter-spacing: -.01em !important;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
+        background: white !important;
+        color: #0B1530 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 1px 3px rgba(11,21,48,.08) !important;
+    }
+    [data-baseweb="radio"] { display: none !important; }
+    </style>""", unsafe_allow_html=True)
+
     all_opts = VERZUIM_OPTS + ["Weet ik niet (4,8% gem.)"]
-    # Determine current index
     cur_v = st.session_state.verzuim
     default_idx = None
     if cur_v in VERZUIM_KEYS:
@@ -524,7 +513,6 @@ if step == 1:
     elif cur_v == "unk":
         default_idx = 5
 
-    st.markdown('<div class="seg-wrap">', unsafe_allow_html=True)
     chosen = st.radio(
         "verzuim", all_opts,
         index=default_idx,
@@ -532,7 +520,6 @@ if step == 1:
         label_visibility="collapsed",
         key="verzuim_radio",
     )
-    st.markdown('</div>', unsafe_allow_html=True)
 
     if chosen is not None:
         if chosen == "Weet ik niet (4,8% gem.)":
@@ -572,13 +559,16 @@ elif step == 2:
         <span>€ 100k</span><span>€ 3M</span>
     </div>""", unsafe_allow_html=True)
 
-    chip_cols = st.columns(4)
-    for ci, v in enumerate([250_000, 500_000, 1_000_000, 2_000_000]):
-        with chip_cols[ci]:
-            label = f"€ {int(v//1000)}k"
-            if st.button(label, key=f"chip_{v}", use_container_width=True):
-                st.session_state.loon = v
-                st.rerun()
+    CHIP_VALS = {"€ 250k": 250_000, "€ 500k": 500_000, "€ 1M": 1_000_000, "€ 2M": 2_000_000}
+    selected_chip = st.pills(
+        "Snelkeuze", list(CHIP_VALS.keys()),
+        selection_mode="single",
+        label_visibility="collapsed",
+        key="loon_chips",
+    )
+    if selected_chip and CHIP_VALS[selected_chip] != st.session_state.loon:
+        st.session_state.loon = CHIP_VALS[selected_chip]
+        st.rerun()
 
     nav(back_lbl="← Terug", next_lbl="Volgende →",
         next_key="v2_next", back_key="v2_back")
@@ -593,10 +583,41 @@ elif step == 3:
         'De periode dat u zelf het loon doorbetaalt voordat de verzekering uitkeert. Op uw polisblad als <strong>"eigen risico"</strong>. Hoe langer de wachttijd, hoe lager de premie.'
     ), unsafe_allow_html=True)
 
+    # Step-specific CSS: style this radio as tile cards
+    st.markdown("""<style>
+    [data-testid="stRadio"] [role="radiogroup"] {
+        display: grid !important;
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 10px !important;
+        margin-top: 36px !important;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label {
+        padding: 24px 6px 18px !important;
+        border-radius: 16px !important;
+        border: 1.5px solid #EBEEF5 !important;
+        background: #fff !important;
+        cursor: pointer !important;
+        text-align: center !important;
+        font-size: 26px !important;
+        font-weight: 700 !important;
+        color: #0B1530 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: border-color .15s, background .15s !important;
+        min-height: 80px !important;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
+        border-color: #015EE1 !important;
+        background: #F4F7FD !important;
+        color: #1040C5 !important;
+    }
+    [data-baseweb="radio"] { display: none !important; }
+    </style>""", unsafe_allow_html=True)
+
     wacht_opts = [str(w) for w in WACHTDAGEN_OPTIES]
     cur_idx = WACHTDAGEN_OPTIES.index(st.session_state.wachttijd) if st.session_state.wachttijd in WACHTDAGEN_OPTIES else 2
 
-    st.markdown('<div class="tile-wrap">', unsafe_allow_html=True)
     chosen_w = st.radio(
         "wachttijd", wacht_opts,
         index=cur_idx,
@@ -604,7 +625,6 @@ elif step == 3:
         label_visibility="collapsed",
         key="wacht_radio",
     )
-    st.markdown('</div>', unsafe_allow_html=True)
 
     if chosen_w is not None:
         st.session_state.wachttijd = int(chosen_w)
@@ -739,15 +759,12 @@ elif step == 5:
 
     col_b, col_n = st.columns([1, 2])
     with col_b:
-        st.markdown('<div class="nav-back">', unsafe_allow_html=True)
-        if st.button("← Terug", key="v5_back"):
+        if st.button("← Terug", key="v5_back", type="secondary"):
             go_back()
-        st.markdown('</div>', unsafe_allow_html=True)
     with col_n:
-        st.markdown('<div class="nav-next">', unsafe_allow_html=True)
-        if st.button("Claim deze besparing →", key="v5_next", use_container_width=True):
+        if st.button("Claim deze besparing →", key="v5_next",
+                     type="primary", use_container_width=True):
             go_next()
-        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("""
     <p style="margin-top:24px;font-size:12px;color:#8089A8;line-height:1.6;font-style:italic;">
