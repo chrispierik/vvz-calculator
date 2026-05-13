@@ -383,14 +383,36 @@ function Step5({ results, effPct, onBack, onNext }) {
 }
 
 // ── Step 6: Gegevens ───────────────────────────────────────────────────────────
-function Step6({ besparing, form, onChange, onBack, onSubmit }) {
+function Step6({ besparing, form, onChange, onBack, onSubmit,
+                 verzuim, loon, wachttijd, premiePct, jaarpremie, effPct, results }) {
   const [loading, setLoading] = useState(false)
   const set = (key) => (e) => onChange({ ...form, [key]: e.target.value })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 600))
+    try {
+      await fetch('https://n8n.dugardijn.nl/webhook/5deca357-d9c0-454e-b886-109cb916a98d', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stap1_verzuimpercentage: verzuim ? `${verzuim}%` : 'onbekend',
+          stap2_loonsom_euro: loon,
+          stap3_wachtdagen: wachttijd,
+          stap4_premiepercentage_pct: premiePct,
+          stap4_jaarpremie_euro: jaarpremie && Number(jaarpremie) > 0 ? Number(jaarpremie) : null,
+          berekening_effectief_premiepercentage_pct: effPct,
+          berekening_huidige_premie_euro: Math.round(results?.huidigePremie ?? 0),
+          berekening_onze_premie_euro: Math.round(results?.onzePremie ?? 0),
+          berekening_ons_premiepercentage_pct: results?.ourRate ?? 0,
+          berekening_besparing_euro: Math.round(results?.besparing ?? 0),
+          berekening_besparing_pct: Math.round(results?.besparingPct ?? 0),
+          bedrijfsnaam: form.bedrijf,
+          email: form.email,
+          telefoonnummer: form.tel,
+        }),
+      })
+    } catch (_) {}
     onSubmit()
     setLoading(false)
   }
@@ -527,7 +549,10 @@ export default function App() {
         )}
         {step === 6 && (
           <Step6 besparing={results?.besparing ?? 0}
-            form={form} onChange={setForm} onBack={back} onSubmit={next} />
+            form={form} onChange={setForm} onBack={back} onSubmit={next}
+            verzuim={verzuim} loon={loon} wachttijd={wachttijd}
+            premiePct={premiePct} jaarpremie={jaarpremie}
+            effPct={effPct} results={results} />
         )}
         {step === 7 && (
           <Step7 bedrijf={form.bedrijf} email={form.email}
