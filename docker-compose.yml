@@ -4,9 +4,9 @@ services:
     container_name: vvz-calculator
     restart: unless-stopped
     ports:
-      - "5000:8501"
+      - "5000:80"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8501/_stcore/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
       interval: 30s
       timeout: 5s
       retries: 3

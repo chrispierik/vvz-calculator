@@ -1,26 +1,23 @@
-export function calculate(loonsom, branch) {
-  const huidigePremie    = loonsom * (branch.gemiddeld / 100)
-  const marktbestePremie = loonsom * (branch.marktbest / 100)
-  const geschatBesparing = huidigePremie - marktbestePremie
-  const besparingPct     = (geschatBesparing / huidigePremie) * 100
-  return { huidigePremie, marktbestePremie, geschatBesparing, besparingPct }
+export const MARKT_GEMIDDELD    = 5.8
+export const DEFAULT_WACHTDAGEN = 30
+export const WACHTDAGEN_OPTIES  = [10, 20, 30, 65, 130, 261]
+
+const OUR_RATES = {
+  10:  3.684,
+  20:  3.157,
+  30:  3.157,
+  65:  2.822,
+  130: 2.103,
+  261: 1.360,
 }
 
-export function getScore(branch) {
-  const pctAbove = ((branch.gemiddeld - branch.marktbest) / branch.marktbest) * 100
-  if (pctAbove === 0)   return 'A'
-  if (pctAbove <= 10)   return 'B'
-  if (pctAbove <= 20)   return 'C'
-  if (pctAbove <= 35)   return 'D'
-  return 'E'
-}
-
-export const SCORE_CONFIG = {
-  A: { color: '#22c55e', label: 'Uitstekend',  description: 'U betaalt al de marktbeste prijs' },
-  B: { color: '#84cc16', label: 'Goed',        description: 'U betaalt iets boven de marktprijs' },
-  C: { color: '#eab308', label: 'Matig',       description: 'U betaalt beduidend te veel' },
-  D: { color: '#f97316', label: 'Hoog',        description: 'Uw premie is fors boven de marktprijs' },
-  E: { color: '#ef4444', label: 'Zeer hoog',   description: 'Er is een grote besparing mogelijk' },
+export function calculateFysio(loonsom, wachtdagen, currentPct = MARKT_GEMIDDELD) {
+  const ourRate      = OUR_RATES[wachtdagen] ?? OUR_RATES[DEFAULT_WACHTDAGEN]
+  const onzePremie   = loonsom * (ourRate / 100)
+  const huidigePremie = loonsom * (currentPct / 100)
+  const besparing    = Math.max(0, huidigePremie - onzePremie)
+  const besparingPct = huidigePremie > 0 ? Math.max(0, (besparing / huidigePremie) * 100) : 0
+  return { ourRate, onzePremie, huidigePremie, besparing, besparingPct }
 }
 
 export function formatCurrency(value) {
@@ -29,8 +26,4 @@ export function formatCurrency(value) {
     currency: 'EUR',
     maximumFractionDigits: 0,
   }).format(value)
-}
-
-export function formatNumber(value) {
-  return new Intl.NumberFormat('nl-NL').format(value)
 }

@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { calculateFysio, MARKT_GEMIDDELD, WACHTDAGEN_OPTIES } from './utils/calculations.js'
 
+// ── Constants ──────────────────────────────────────────────────────────────────
 const VERZUIM_OPTIONS = [
   { label: '0–2%', value: '0-2' },
   { label: '2–4%', value: '2-4' },
@@ -8,23 +10,25 @@ const VERZUIM_OPTIONS = [
   { label: '8%+',  value: '8+' },
 ]
 
-const NAV_STEPS = [
-  { id: 1, label: 'Verzuimcijfer' },
-  { id: 2, label: 'Loonsom',        preview: '€ 800k' },
-  { id: 3, label: 'Wachttijd',      preview: '30 dagen' },
-  { id: 4, label: 'Huidige premie', preview: '6.4%' },
-  { id: 5, label: 'Uw besparing',   preview: '€ 10,2k' },
-  { id: 6, label: 'Uw gegevens' },
+const LOON_CHIPS = [
+  { label: '€ 250k', value: 250_000 },
+  { label: '€ 500k', value: 500_000 },
+  { label: '€ 1M',   value: 1_000_000 },
+  { label: '€ 2M',   value: 2_000_000 },
 ]
 
-function StarIcon() {
-  return (
-    <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-    </svg>
-  )
+const STEP_LABELS = ['Verzuimcijfer', 'Loonsom', 'Wachttijd', 'Huidige premie', 'Uw besparing', 'Uw gegevens']
+
+function formatLoonShort(v) {
+  if (v >= 1_000_000) return `€ ${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M`
+  return `€ ${Math.round(v / 1_000)}k`
 }
 
+function nlNum(v) {
+  return Math.round(v).toLocaleString('nl-NL')
+}
+
+// ── Logo ───────────────────────────────────────────────────────────────────────
 function Logo() {
   return (
     <div className="flex items-center gap-3">
@@ -42,26 +46,28 @@ function Logo() {
   )
 }
 
-function Sidebar({ currentStep }) {
+// ── Sidebar ────────────────────────────────────────────────────────────────────
+function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
+  const verzuimLabel = { '0-2': '0–2%', '2-4': '2–4%', '4-6': '4–6%', '6-8': '6–8%', '8+': '8%+', unk: 'gem.' }
+  const summaries = {
+    1: verzuim ? verzuimLabel[verzuim] ?? null : null,
+    2: formatLoonShort(loon),
+    3: `${wachttijd} d.`,
+    4: `${premiePct.toFixed(1)}%`,
+  }
+
   return (
     <aside
-      className="w-[420px] min-h-screen relative overflow-hidden flex flex-col px-8 py-8 flex-shrink-0"
-      style={{ background: 'linear-gradient(160deg, #1a45c8 0%, #0b2fa0 100%)' }}
+      className="w-[340px] min-h-screen relative overflow-hidden flex flex-col px-7 py-8 flex-shrink-0"
+      style={{ background: 'linear-gradient(180deg, #0A2A8A 0%, #1040C5 100%)' }}
     >
-      {/* Decorative shapes */}
-      <div className="absolute bottom-[-50px] right-[-50px] w-60 h-60 border-2 border-white/10 rotate-45 rounded-2xl pointer-events-none" />
-      <div className="absolute bottom-[50px] right-[20px] w-36 h-36 border-2 border-white/10 rotate-45 rounded-xl pointer-events-none" />
+      <div className="absolute bottom-[-50px] right-[-50px] w-56 h-56 border-2 border-white/10 rotate-45 rounded-2xl pointer-events-none" />
+      <div className="absolute bottom-[60px] right-[30px] w-32 h-32 border-2 border-white/10 rotate-45 rounded-xl pointer-events-none" />
 
-      {/* Logo */}
-      <div className="mb-10">
-        <Logo />
-      </div>
+      <div className="mb-10"><Logo /></div>
 
-      {/* Header copy */}
       <div className="mb-8">
-        <p className="text-blue-300/80 text-[10px] font-bold tracking-[0.2em] uppercase mb-3">
-          Besparing-check
-        </p>
+        <p className="text-blue-300/70 text-[10px] font-bold tracking-[.2em] uppercase mb-3">Besparing-check</p>
         <h2 className="text-white text-[22px] font-bold leading-snug mb-3">
           Ontdek of u te veel betaalt voor uw verzuimverzekering.
         </h2>
@@ -70,40 +76,26 @@ function Sidebar({ currentStep }) {
         </p>
       </div>
 
-      {/* Step navigation */}
       <nav className="mb-auto">
-        {NAV_STEPS.map((step) => {
-          const isActive    = step.id === currentStep
-          const isCompleted = step.id < currentStep
-
+        {STEP_LABELS.map((label, i) => {
+          const idx      = i + 1
+          const isDone   = idx < step
+          const isActive = idx === step || (step === 7 && idx === 6)
           return (
-            <div
-              key={step.id}
-              className="flex items-center gap-3 py-3 border-b border-white/10 last:border-b-0"
-            >
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all ${
-                  isActive
-                    ? 'bg-white text-[#0b349d]'
-                    : isCompleted
-                    ? 'bg-white/20 text-white/80'
-                    : 'border border-white/25 text-white/40'
-                }`}
-              >
-                {step.id}
+            <div key={idx} className="flex items-center gap-3 py-3 border-b border-white/10 last:border-b-0">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0 ${
+                isDone   ? 'bg-[#1ABC9C] text-white' :
+                isActive ? 'bg-white text-[#1040C5]' :
+                           'border border-white/30 text-white/40'
+              }`}>
+                {isDone ? '✓' : idx}
               </div>
               <div className="flex items-center justify-between flex-1 min-w-0">
-                <span
-                  className={`text-sm font-medium truncate ${
-                    isActive ? 'text-white' : 'text-white/50'
-                  }`}
-                >
-                  {step.label}
-                </span>
-                {step.preview && !isActive && (
-                  <span className="text-xs text-white/40 ml-3 flex-shrink-0">
-                    {step.preview}
-                  </span>
+                <span className={`text-sm truncate ${
+                  isActive ? 'text-white font-semibold' : isDone ? 'text-white/80 font-medium' : 'text-white/40'
+                }`}>{label}</span>
+                {isDone && summaries[idx] && (
+                  <span className="text-xs text-white/60 ml-2 flex-shrink-0 tabular-nums">{summaries[idx]}</span>
                 )}
               </div>
             </div>
@@ -111,12 +103,15 @@ function Sidebar({ currentStep }) {
         })}
       </nav>
 
-      {/* Testimonial */}
-      <div className="mt-8 pt-6 border-t border-white/10 relative z-10">
-        <div className="flex items-center gap-0.5 mb-2">
-          <StarIcon /><StarIcon /><StarIcon /><StarIcon /><StarIcon />
-          <span className="text-white/70 text-sm font-semibold ml-1.5">4,8 / 5</span>
-          <span className="text-white/40 text-sm ml-1">· 312 reviews</span>
+      <div className="mt-8 pt-6 border-t border-white/15">
+        <div className="flex items-center gap-1 mb-2">
+          {[...Array(5)].map((_, i) => (
+            <svg key={i} className="w-3.5 h-3.5 text-[#1ABC9C]" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+          <span className="text-white/70 text-sm font-semibold ml-1">4,8 / 5</span>
+          <span className="text-white/40 text-xs ml-1">· 312 reviews</span>
         </div>
         <blockquote className="text-blue-200/80 text-sm italic leading-relaxed">
           "We bespaarden € 8.400 per jaar zonder iets in te leveren op de dekking. Alles via één gesprek."
@@ -127,86 +122,424 @@ function Sidebar({ currentStep }) {
   )
 }
 
-function VerzuimcijferStep({ value, onChange, onNext }) {
+// ── Shared: question header ────────────────────────────────────────────────────
+function QHead({ num, title, helper, result = false }) {
   return (
-    <div className="flex flex-col flex-1 px-14 py-14 justify-between">
-      <div>
-        {/* Step badge */}
-        <div className="mb-10">
-          <span className="inline-block text-xs font-semibold text-[#378ADD] border border-[#378ADD]/40 bg-[#378ADD]/8 rounded-full px-4 py-1.5 tracking-widest uppercase">
-            Vraag 01 / 05
-          </span>
-        </div>
-
-        {/* Question */}
-        <h1 className="text-[36px] font-extrabold text-gray-900 leading-tight mb-3">
-          Hoe hoog is het<br />ziekteverzuim in uw praktijk?
-        </h1>
-        <p className="text-gray-500 text-base leading-relaxed mb-10">
-          Kijk naar het gemiddelde van de laatste 3 jaar. Bij twijfel: kies de klasse iets hoger.
-        </p>
-
-        {/* Tile pills */}
-        <div className="flex gap-3 mb-3">
-          {VERZUIM_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => onChange(option.value)}
-              className={`flex-1 py-5 px-2 rounded-2xl text-base font-semibold border-2 transition-all text-center ${
-                value === option.value
-                  ? 'bg-white border-gray-800 text-gray-900 shadow-sm'
-                  : 'bg-gray-100 border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
-        {/* "Weet ik niet" option */}
-        <button
-          onClick={() => onChange('unknown')}
-          className={`w-full py-4 px-6 rounded-2xl text-base border-2 transition-all text-center ${
-            value === 'unknown'
-              ? 'bg-white border-gray-800 border-solid text-gray-900 font-semibold'
-              : 'bg-white border-dashed border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-500'
-          }`}
-        >
-          Weet ik niet — gebruik landelijk gemiddelde (4,8%)
-        </button>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between pt-10">
-        <button className="text-gray-400 text-sm hover:text-gray-600 transition-colors">
-          ← Terug
-        </button>
-        <button
-          onClick={onNext}
-          disabled={!value}
-          className="bg-[#2ECC71] hover:bg-[#27AE60] disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-semibold px-8 py-3 rounded-xl transition-colors"
-        >
-          Volgende →
-        </button>
-      </div>
+    <div className="mb-8">
+      <span className={`inline-block text-[11px] font-semibold rounded-md px-2.5 py-1 tracking-[.14em] uppercase mb-3 ${
+        result ? 'text-[#0E7C66] bg-[#D6F2EB]' : 'text-[#015EE1] bg-[#E6EEFB]'
+      }`}>
+        {result ? '✓ Resultaat' : `Vraag ${String(num).padStart(2, '0')} / 05`}
+      </span>
+      <h1 className="text-[34px] font-bold text-[#0B1530] leading-[1.15] tracking-tight mb-3"
+        dangerouslySetInnerHTML={{ __html: title }} />
+      {helper && (
+        <p className="text-[#5A6488] text-[15px] leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: helper }} />
+      )}
     </div>
   )
 }
 
-export default function App() {
-  const [currentStep, setCurrentStep]     = useState(1)
-  const [verzuimcijfer, setVerzuimcijfer] = useState('4-6')
+// ── Shared: navigation ─────────────────────────────────────────────────────────
+function Nav({ onBack, onNext, nextLabel = 'Volgende →', nextDisabled = false, hideBack = false }) {
+  return (
+    <div className="flex items-center justify-between pt-10 mt-auto">
+      {!hideBack
+        ? <button onClick={onBack} className="text-[#5A6488] text-sm font-medium hover:text-[#0B1530] transition-colors">← Terug</button>
+        : <div />}
+      <button
+        onClick={onNext}
+        disabled={nextDisabled}
+        className="bg-[#1ABC9C] hover:bg-[#16A085] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[15px] font-bold px-8 py-3.5 rounded-xl transition-colors"
+        style={{ boxShadow: '0 12px 28px -10px rgba(26,188,156,.5)' }}
+      >
+        {nextLabel}
+      </button>
+    </div>
+  )
+}
+
+// ── Step 1: Verzuimcijfer ──────────────────────────────────────────────────────
+function Step1({ value, onChange, onNext }) {
+  return (
+    <div className="flex flex-col h-full">
+      <QHead num={1}
+        title="Hoe hoog is het ziekteverzuim in uw praktijk?"
+        helper="Kijk naar het gemiddelde van de laatste 3 jaar. Bij twijfel: kies de klasse iets hoger."
+      />
+
+      <div className="bg-[#F5F7FB] rounded-2xl p-1.5 flex gap-1 mb-3">
+        {VERZUIM_OPTIONS.map((opt) => (
+          <button key={opt.value} onClick={() => onChange(opt.value)}
+            className={`flex-1 py-3.5 rounded-xl text-[15px] transition-all ${
+              value === opt.value
+                ? 'bg-white text-[#0B1530] font-bold shadow-sm'
+                : 'text-[#5A6488] font-medium hover:text-[#0B1530]'
+            }`}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      <button onClick={() => onChange('unk')}
+        className={`w-full py-4 px-6 rounded-2xl text-[15px] border-2 transition-all ${
+          value === 'unk'
+            ? 'bg-white border-[#0B1530] text-[#0B1530] font-semibold'
+            : 'bg-white border-dashed border-[#DCE0EC] text-[#8089A8] hover:border-[#5A6488] hover:text-[#5A6488]'
+        }`}>
+        Weet ik niet — gebruik landelijk gemiddelde (4,8%)
+      </button>
+
+      <Nav hideBack onNext={onNext} nextDisabled={!value} />
+    </div>
+  )
+}
+
+// ── Step 2: Loonsom ────────────────────────────────────────────────────────────
+function Step2({ value, onChange, onBack, onNext }) {
+  const pct = ((value - 100_000) / 2_900_000) * 100
+  return (
+    <div className="flex flex-col h-full">
+      <QHead num={2}
+        title="Wat is uw totale loonsom per jaar?"
+        helper="Tel alle bruto salarissen van uw medewerkers bij elkaar op (vóór belasting). Dit is de basis waarover de premie wordt berekend."
+      />
+
+      <div className="text-center mb-2">
+        <p className="text-[11px] font-mono text-[#8089A8] uppercase tracking-[.1em]">Loonsom per jaar</p>
+        <p className="text-[60px] font-bold text-[#0B1530] leading-none tracking-tight tabular-nums mt-2">
+          <span className="text-[#8089A8]">€&nbsp;</span>{nlNum(value)}
+        </p>
+      </div>
+
+      <div className="mt-6">
+        <input type="range" min={100_000} max={3_000_000} step={10_000} value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          style={{ background: `linear-gradient(to right, #015EE1 ${pct}%, #E2E8F0 ${pct}%)` }}
+          className="w-full rounded-full"
+        />
+        <div className="flex justify-between mt-1.5">
+          <span className="text-xs text-[#8089A8]">€ 100k</span>
+          <span className="text-xs text-[#8089A8]">€ 3M</span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mt-5">
+        {LOON_CHIPS.map((chip) => (
+          <button key={chip.value} onClick={() => onChange(chip.value)}
+            className={`px-4 py-2 rounded-full text-[13px] font-medium border transition-all ${
+              value === chip.value
+                ? 'bg-[#0B1530] text-white border-[#0B1530]'
+                : 'bg-white text-[#2A3454] border-[#DCE0EC] hover:bg-[#0B1530] hover:text-white hover:border-[#0B1530]'
+            }`}>
+            {chip.label}
+          </button>
+        ))}
+      </div>
+
+      <Nav onBack={onBack} onNext={onNext} />
+    </div>
+  )
+}
+
+// ── Step 3: Wachttijd ──────────────────────────────────────────────────────────
+function Step3({ value, onChange, onBack, onNext }) {
+  return (
+    <div className="flex flex-col h-full">
+      <QHead num={3}
+        title="Hoeveel dagen wachttijd heeft u?"
+        helper='De periode dat u zelf het loon doorbetaalt voordat de verzekering uitkeert. Op uw polisblad als <strong style="color:#0B1530">"eigen risico"</strong>. Hoe langer de wachttijd, hoe lager de premie.'
+      />
+
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+        {WACHTDAGEN_OPTIES.map((d) => (
+          <button key={d} onClick={() => onChange(d)}
+            className={`py-5 rounded-2xl text-[26px] font-bold border-2 transition-all ${
+              value === d
+                ? 'border-[#015EE1] bg-[#F4F7FD] text-[#1040C5]'
+                : 'border-[#EBEEF5] bg-white text-[#0B1530] hover:border-[#DCE0EC] hover:bg-[#F5F7FB]'
+            }`}>
+            {d}
+          </button>
+        ))}
+      </div>
+      <p className="text-[13px] text-[#8089A8] italic mt-3">
+        Op uw polisblad staat dit als "eigen risico periode"
+      </p>
+
+      <Nav onBack={onBack} onNext={onNext} />
+    </div>
+  )
+}
+
+// ── Step 4: Huidige premie ─────────────────────────────────────────────────────
+function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext }) {
+  const above = value > MARKT_GEMIDDELD
+  const diff  = Math.abs(value - MARKT_GEMIDDELD)
+  const pct   = (value / 12) * 100
+  const euros = Math.round(loon * (value / 100))
 
   return (
-    <div className="min-h-screen flex font-sans">
-      <Sidebar currentStep={currentStep} />
-      <main className="flex-1 flex flex-col bg-white">
-        {currentStep === 1 && (
-          <VerzuimcijferStep
-            value={verzuimcijfer}
-            onChange={setVerzuimcijfer}
-            onNext={() => setCurrentStep(2)}
-          />
+    <div className="flex flex-col h-full">
+      <QHead num={4}
+        title="Welk premiepercentage betaalt u nu?"
+        helper={`Het marktgemiddelde voor fysiotherapeuten is <strong style="color:#0B1530">${MARKT_GEMIDDELD}%</strong>. Sleep de slider, of vul uw exacte jaarpremie in.`}
+      />
+
+      <div className="text-center mb-2">
+        <p className={`text-[80px] font-bold leading-none tracking-tight tabular-nums ${above ? 'text-[#D14D2C]' : 'text-[#0B1530]'}`}>
+          {value.toFixed(1)}<span className="text-[44px] text-[#8089A8]">%</span>
+        </p>
+        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-semibold mt-3 ${
+          above ? 'bg-[#FFF1EB] text-[#A8401A]' : 'bg-[#D6F2EB] text-[#0E7C66]'
+        }`}>
+          {above ? `↑ ${diff.toFixed(1)}% boven marktgemiddelde` : '↓ Onder of gelijk aan marktgemiddelde'}
+        </span>
+      </div>
+
+      <div className="mt-6">
+        <input type="range" min={0} max={12} step={0.1} value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          style={{ background: `linear-gradient(to right, ${above ? '#D14D2C' : '#015EE1'} ${pct}%, #E2E8F0 ${pct}%)` }}
+          className="w-full rounded-full"
+        />
+        <div className="flex justify-between mt-1.5">
+          <span className="text-xs text-[#8089A8]">0%</span>
+          <span className="text-xs text-[#8089A8]">12%</span>
+        </div>
+      </div>
+
+      <div className="mt-5 p-4 bg-[#F5F7FB] rounded-2xl flex items-center justify-between">
+        <div>
+          <p className="text-[11px] text-[#5A6488] uppercase tracking-[.08em]">Komt neer op</p>
+          <p className="text-[22px] font-bold text-[#0B1530] mt-1 tabular-nums">€ {nlNum(euros)} / jaar</p>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <p className="text-[13px] text-[#5A6488] mb-1.5">
+          Of vul uw exacte jaarpremie in{' '}
+          <span className="text-[10px] bg-[#EBEEF5] px-1.5 py-0.5 rounded font-semibold tracking-wide">OPTIONEEL</span>
+        </p>
+        <input type="number" min={0} max={999_999} step={500} value={jaarpremie}
+          onChange={(e) => onJaarpremie(e.target.value)}
+          placeholder="bijv. 12.500"
+          className="w-full bg-white border-[1.5px] border-[#DCE0EC] rounded-xl px-4 py-3.5 text-[15px] text-[#0B1530] placeholder-[#8089A8] focus:outline-none focus:border-[#1040C5] transition-all"
+        />
+      </div>
+
+      <Nav onBack={onBack} onNext={onNext} nextLabel="Bereken mijn besparing →" />
+    </div>
+  )
+}
+
+// ── Step 5: Resultaat ──────────────────────────────────────────────────────────
+function Step5({ results, effPct, onBack, onNext }) {
+  const { ourRate, onzePremie, huidigePremie, besparing, besparingPct } = results
+  const pctShow = Math.round(besparingPct)
+
+  return (
+    <div className="flex flex-col h-full">
+      <QHead result
+        title={`U bespaart naar verwachting <span style="color:#1040C5">${pctShow}%</span> op uw verzuimverzekering.`}
+      />
+
+      <div className="relative rounded-3xl p-8 mb-3 overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #1040C5 0%, #015EE1 100%)', boxShadow: '0 16px 40px -12px rgba(1,94,225,.35)' }}>
+        <div className="absolute top-[-80px] right-[-80px] w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(26,188,156,.4), transparent 70%)' }} />
+        <div className="relative z-10">
+          <p className="text-[11px] font-mono text-white/70 uppercase tracking-[.14em]">Geschatte jaarbesparing</p>
+          <p className="text-[68px] font-bold text-white leading-none tracking-tight tabular-nums mt-1.5">
+            <span className="text-white/60 text-[42px]">€&nbsp;</span>{nlNum(besparing)}
+          </p>
+          <span className="inline-flex items-center gap-2 bg-[#1ABC9C] text-white text-[13px] font-bold px-4 py-1.5 rounded-full mt-3">
+            ↓ {pctShow}% lager dan uw huidige premie
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="bg-[#F5F7FB] rounded-2xl p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Uw huidige premie</p>
+          <p className="text-[26px] font-bold text-[#2A3454] mt-1.5 tabular-nums">€ {nlNum(huidigePremie)}</p>
+          <p className="text-xs text-[#8089A8] mt-1">per jaar · {effPct.toFixed(1)}%</p>
+        </div>
+        <div className="bg-[#F4F7FD] rounded-2xl p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Verwachte nieuwe premie</p>
+          <p className="text-[26px] font-bold text-[#1040C5] mt-1.5 tabular-nums">€ {nlNum(onzePremie)}</p>
+          <p className="text-xs text-[#8089A8] mt-1">per jaar · {ourRate.toFixed(3)}%</p>
+        </div>
+      </div>
+
+      <p className="text-[12px] text-[#8089A8] italic leading-relaxed mb-2">
+        Schatting op basis van mandaat Fysiotherapie 100%/100%/70%/70%. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
+      </p>
+
+      <Nav onBack={onBack} onNext={onNext} nextLabel="Claim deze besparing →" />
+    </div>
+  )
+}
+
+// ── Step 6: Gegevens ───────────────────────────────────────────────────────────
+function Step6({ besparing, form, onChange, onBack, onSubmit }) {
+  const [loading, setLoading] = useState(false)
+  const set = (key) => (e) => onChange({ ...form, [key]: e.target.value })
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    await new Promise((r) => setTimeout(r, 600))
+    onSubmit()
+    setLoading(false)
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <QHead num={5}
+        title="Naar wie sturen we uw besparing?"
+        helper="Persoonlijk overzicht in uw inbox binnen 1 minuut. Geen verkooppraatjes — eerlijke vergelijking met 6 verzekeraars."
+      />
+
+      {besparing > 0 && (
+        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#EBF8F4] border border-[#1ABC9C] mb-6">
+          <div>
+            <p className="text-[10px] font-mono font-semibold uppercase tracking-[.12em] text-[#0E7C66]">Klaar om verzonden te worden</p>
+            <p className="text-[15px] font-semibold text-[#0B1530] mt-1">
+              Uw besparing van <span className="text-[#1040C5] tabular-nums">€ {nlNum(besparing)}</span> per jaar
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-base flex-shrink-0">✉</div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1">
+        <div className="space-y-4 flex-1">
+          {[
+            { key: 'bedrijf', label: 'Bedrijfsnaam',   placeholder: 'Fysiotherapie Voorbeeld B.V.', required: true },
+            { key: 'email',   label: 'E-mailadres',    placeholder: 'naam@bedrijf.nl', type: 'email', required: true },
+            { key: 'tel',     label: 'Telefoonnummer', placeholder: '06 12 34 56 78',  type: 'tel',   required: true },
+          ].map(({ key, label, placeholder, type = 'text', required }) => (
+            <div key={key}>
+              <label className="block text-[13px] font-semibold text-[#2A3454] mb-1.5">
+                {label} {required && <span className="text-[#1ABC9C]">*</span>}
+              </label>
+              <input type={type} value={form[key]} onChange={set(key)} required={required} placeholder={placeholder}
+                className="w-full bg-white border-[1.5px] border-[#DCE0EC] rounded-xl px-4 py-3.5 text-[15px] text-[#0B1530] placeholder-[#8089A8] focus:outline-none focus:border-[#1040C5] transition-all"
+              />
+            </div>
+          ))}
+          <p className="text-xs text-[#8089A8]">🔒 Versleuteld verzonden · we delen niets met derden</p>
+        </div>
+
+        <div className="pt-6">
+          <button type="submit" disabled={loading}
+            className="w-full bg-[#1ABC9C] hover:bg-[#16A085] disabled:opacity-60 text-white text-[15px] font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+            style={{ boxShadow: '0 12px 28px -10px rgba(26,188,156,.5)' }}>
+            {loading ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Bezig...
+              </>
+            ) : 'Stuur naar mij →'}
+          </button>
+          <button type="button" onClick={onBack}
+            className="w-full mt-3 text-[#5A6488] text-sm font-medium hover:text-[#0B1530] transition-colors py-2">
+            ← Terug naar uw besparing
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+// ── Step 7: Bedankt ────────────────────────────────────────────────────────────
+function Step7({ bedrijf, email, besparing, onRestart }) {
+  return (
+    <div className="flex flex-col h-full justify-center">
+      <div className="w-16 h-16 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-3xl font-bold mb-6">✓</div>
+      <h1 className="text-[34px] font-bold text-[#0B1530] leading-[1.15] tracking-tight mb-4">
+        Bedankt{bedrijf ? `, ${bedrijf}` : ''}.
+      </h1>
+      <p className="text-[#5A6488] text-[15px] leading-relaxed mb-8">
+        Uw persoonlijke overzicht — met een verwachte besparing van{' '}
+        <strong className="text-[#0B1530]">€ {nlNum(besparing)} per jaar</strong> — is onderweg naar{' '}
+        <strong className="text-[#0B1530]">{email || 'uw inbox'}</strong>.
+        Een adviseur belt u binnen 1 werkdag.
+      </p>
+      <button onClick={onRestart}
+        className="self-start bg-[#F5F7FB] hover:bg-[#EBEEF5] text-[#0B1530] text-[14px] font-medium px-6 py-3 rounded-xl transition-colors">
+        Nieuwe berekening
+      </button>
+    </div>
+  )
+}
+
+// ── App ────────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [step, setStep]         = useState(1)
+  const [verzuim, setVerzuim]   = useState(null)
+  const [loon, setLoon]         = useState(800_000)
+  const [wachttijd, setWachttijd] = useState(30)
+  const [premiePct, setPremiePct] = useState(MARKT_GEMIDDELD)
+  const [jaarpremie, setJaarpremie] = useState('')
+  const [form, setForm]         = useState({ bedrijf: '', email: '', tel: '' })
+  const [results, setResults]   = useState(null)
+  const [effPct, setEffPct]     = useState(MARKT_GEMIDDELD)
+
+  const next = () => setStep((s) => s + 1)
+  const back = () => setStep((s) => s - 1)
+
+  const computeResults = () => {
+    const ep = jaarpremie && Number(jaarpremie) > 0 && loon > 0
+      ? (Number(jaarpremie) / loon) * 100
+      : premiePct
+    setEffPct(ep)
+    setResults(calculateFysio(loon, wachttijd, ep))
+    next()
+  }
+
+  const restart = () => {
+    setStep(1); setVerzuim(null); setLoon(800_000); setWachttijd(30)
+    setPremiePct(MARKT_GEMIDDELD); setJaarpremie(''); setForm({ bedrijf: '', email: '', tel: '' })
+    setResults(null); setEffPct(MARKT_GEMIDDELD)
+  }
+
+  return (
+    <div className="min-h-screen flex font-sans bg-[#FAFBFE]">
+      <Sidebar step={step} verzuim={verzuim} loon={loon} wachttijd={wachttijd} premiePct={premiePct} />
+
+      <main className="flex-1 flex flex-col px-14 py-14" style={{ maxWidth: 760 }}>
+        {step === 1 && <Step1 value={verzuim} onChange={setVerzuim} onNext={next} />}
+        {step === 2 && <Step2 value={loon} onChange={setLoon} onBack={back} onNext={next} />}
+        {step === 3 && <Step3 value={wachttijd} onChange={setWachttijd} onBack={back} onNext={next} />}
+        {step === 4 && (
+          <Step4 value={premiePct} onChange={setPremiePct}
+            jaarpremie={jaarpremie} onJaarpremie={setJaarpremie}
+            loon={loon} onBack={back} onNext={computeResults} />
+        )}
+        {step === 5 && results && (
+          <Step5 results={results} effPct={effPct} onBack={back} onNext={next} />
+        )}
+        {step === 6 && (
+          <Step6 besparing={results?.besparing ?? 0}
+            form={form} onChange={setForm} onBack={back} onSubmit={next} />
+        )}
+        {step === 7 && (
+          <Step7 bedrijf={form.bedrijf} email={form.email}
+            besparing={results?.besparing ?? 0} onRestart={restart} />
+        )}
+
+        {step <= 6 && (
+          <p className="text-[11px] text-[#8089A8] italic border-t border-[#EBEEF5] pt-5 mt-auto leading-relaxed">
+            Deze berekening is een schatting op basis van het mandaat Fysiotherapie 100%/100%/70%/70%
+            en uw opgegeven verzuimprofiel. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
+            Aan deze berekening kunnen geen rechten worden ontleend.
+          </p>
         )}
       </main>
     </div>
