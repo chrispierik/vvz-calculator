@@ -10,10 +10,10 @@ const VERZUIM_OPTIONS = [
 
 const NAV_STEPS = [
   { id: 1, label: 'Verzuimcijfer' },
-  { id: 2, label: 'Loonsom',       preview: '€ 800k' },
-  { id: 3, label: 'Wachttijd',     preview: '30 dagen' },
-  { id: 4, label: 'Huidige premie',preview: '6.4%' },
-  { id: 5, label: 'Uw besparing',  preview: '€ 10,2k' },
+  { id: 2, label: 'Loonsom',        preview: '€ 800k' },
+  { id: 3, label: 'Wachttijd',      preview: '30 dagen' },
+  { id: 4, label: 'Huidige premie', preview: '6.4%' },
+  { id: 5, label: 'Uw besparing',   preview: '€ 10,2k' },
   { id: 6, label: 'Uw gegevens' },
 ]
 
@@ -25,11 +25,28 @@ function StarIcon() {
   )
 }
 
+function Logo() {
+  return (
+    <div className="flex items-center gap-3">
+      <svg width="38" height="44" viewBox="0 0 70 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M40.2852 64.1741C38.2328 67.7164 33.1005 67.7164 31.0477 64.1741L1.60286 13.3644C-0.449942 9.82215 2.11606 5.39429 6.2217 5.39429H65.1114C69.2172 5.39429 71.783 9.82215 69.7301 13.3644L40.2852 64.1741Z" fill="#015EE1"/>
+        <path d="M26.7118 39.9742C24.6512 43.4753 19.5709 43.4753 17.5103 39.9742L1.80171 13.2848C-0.283092 9.74264 2.28086 5.28369 6.40246 5.28369H37.8195C41.9413 5.28369 44.5053 9.74264 42.4204 13.2848L26.7118 39.9742Z" fill="#1040C5"/>
+        <path d="M21.8888 48.4551L35.2222 25.2088L27.4444 21.2238L11.4444 7.94019L1.22217 12.368L21.8888 48.4551Z" fill="#1040C5"/>
+        <path fillRule="evenodd" clipRule="evenodd" d="M38.4077 23.4377H32.4816V29.3414H26.5557V35.2455H32.4816V41.1492H38.4077V35.2455H44.3334V29.3414H38.4077V23.4377Z" fill="white"/>
+      </svg>
+      <div className="leading-tight">
+        <div className="text-white font-semibold text-[15px]">verzeker</div>
+        <div className="text-white font-semibold text-[15px]">verzuim.nl</div>
+      </div>
+    </div>
+  )
+}
+
 function Sidebar({ currentStep }) {
   return (
     <aside
-      className="w-[380px] min-h-screen relative overflow-hidden flex flex-col px-8 py-8 flex-shrink-0"
-      style={{ background: 'linear-gradient(160deg, #1244c8 0%, #0a2e9e 100%)' }}
+      className="w-[420px] min-h-screen relative overflow-hidden flex flex-col px-8 py-8 flex-shrink-0"
+      style={{ background: 'linear-gradient(160deg, #1a45c8 0%, #0b2fa0 100%)' }}
     >
       {/* Decorative shapes */}
       <div className="absolute bottom-[-50px] right-[-50px] w-60 h-60 border-2 border-white/10 rotate-45 rounded-2xl pointer-events-none" />
@@ -37,7 +54,7 @@ function Sidebar({ currentStep }) {
 
       {/* Logo */}
       <div className="mb-10">
-        <img src="/logo.svg" alt="verzekerverzuim.nl" className="h-10 w-auto" />
+        <Logo />
       </div>
 
       {/* Header copy */}
@@ -67,7 +84,7 @@ function Sidebar({ currentStep }) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all ${
                   isActive
-                    ? 'bg-white text-[#0b349d] shadow-sm'
+                    ? 'bg-white text-[#0b349d]'
                     : isCompleted
                     ? 'bg-white/20 text-white/80'
                     : 'border border-white/25 text-white/40'
@@ -98,7 +115,7 @@ function Sidebar({ currentStep }) {
       <div className="mt-8 pt-6 border-t border-white/10 relative z-10">
         <div className="flex items-center gap-0.5 mb-2">
           <StarIcon /><StarIcon /><StarIcon /><StarIcon /><StarIcon />
-          <span className="text-white/70 text-sm font-semibold ml-1.5">4.8 / 5</span>
+          <span className="text-white/70 text-sm font-semibold ml-1.5">4,8 / 5</span>
           <span className="text-white/40 text-sm ml-1">· 312 reviews</span>
         </div>
         <blockquote className="text-blue-200/80 text-sm italic leading-relaxed">
@@ -116,14 +133,14 @@ function VerzuimcijferStep({ value, onChange, onNext }) {
       <div>
         {/* Step badge */}
         <div className="mb-10">
-          <span className="inline-block text-xs font-semibold text-[#378ADD] border border-[#378ADD]/40 bg-[#378ADD]/5 rounded-full px-4 py-1.5 tracking-widest uppercase">
+          <span className="inline-block text-xs font-semibold text-[#378ADD] border border-[#378ADD]/40 bg-[#378ADD]/8 rounded-full px-4 py-1.5 tracking-widest uppercase">
             Vraag 01 / 05
           </span>
         </div>
 
         {/* Question */}
-        <h1 className="text-[32px] font-extrabold text-gray-900 leading-tight mb-3">
-          Hoe hoog is het ziekteverzuim in uw praktijk?
+        <h1 className="text-[36px] font-extrabold text-gray-900 leading-tight mb-3">
+          Hoe hoog is het<br />ziekteverzuim in uw praktijk?
         </h1>
         <p className="text-gray-500 text-base leading-relaxed mb-10">
           Kijk naar het gemiddelde van de laatste 3 jaar. Bij twijfel: kies de klasse iets hoger.
@@ -135,10 +152,10 @@ function VerzuimcijferStep({ value, onChange, onNext }) {
             <button
               key={option.value}
               onClick={() => onChange(option.value)}
-              className={`flex-1 py-5 px-2 rounded-xl text-base font-semibold border-2 transition-all text-center ${
+              className={`flex-1 py-5 px-2 rounded-2xl text-base font-semibold border-2 transition-all text-center ${
                 value === option.value
-                  ? 'bg-gray-900 border-gray-900 text-white'
-                  : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                  ? 'bg-white border-gray-800 text-gray-900 shadow-sm'
+                  : 'bg-gray-100 border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50'
               }`}
             >
               {option.label}
@@ -149,10 +166,10 @@ function VerzuimcijferStep({ value, onChange, onNext }) {
         {/* "Weet ik niet" option */}
         <button
           onClick={() => onChange('unknown')}
-          className={`w-full py-4 px-6 rounded-xl text-base border-2 transition-all text-center ${
+          className={`w-full py-4 px-6 rounded-2xl text-base border-2 transition-all text-center ${
             value === 'unknown'
-              ? 'bg-gray-900 border-gray-900 text-white font-semibold'
-              : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+              ? 'bg-white border-gray-800 border-solid text-gray-900 font-semibold'
+              : 'bg-white border-dashed border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-500'
           }`}
         >
           Weet ik niet — gebruik landelijk gemiddelde (4,8%)
@@ -178,7 +195,7 @@ function VerzuimcijferStep({ value, onChange, onNext }) {
 
 export default function App() {
   const [currentStep, setCurrentStep]     = useState(1)
-  const [verzuimcijfer, setVerzuimcijfer] = useState(null)
+  const [verzuimcijfer, setVerzuimcijfer] = useState('4-6')
 
   return (
     <div className="min-h-screen flex font-sans">
