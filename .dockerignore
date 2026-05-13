@@ -5,7 +5,12 @@ dist
 .env
 .env.*
 *.md
-app.py
-branches.py
-calculations.py
-requirements.txt
+src/
+public/
+index.html
+package.json
+package-lock.json
+postcss.config.js
+tailwind.config.js
+vite.config.js
+nginx.conf
