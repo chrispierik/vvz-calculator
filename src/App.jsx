@@ -17,7 +17,7 @@ const LOON_CHIPS = [
   { label: '€ 2M',   value: 2_000_000 },
 ]
 
-const STEP_LABELS = ['Verzuimcijfer', 'Loonsom', 'Wachttijd', 'Huidige premie', 'Uw besparing', 'Uw gegevens']
+const STEP_LABELS = ['Verzuimcijfer', 'Loonsom', 'Wachttijd', 'Huidige premie', 'Jouw besparing', 'Jouw gegevens']
 
 function formatLoonShort(v) {
   if (v >= 1_000_000) return `€ ${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M`
@@ -67,12 +67,12 @@ function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
       <div className="mb-10"><Logo /></div>
 
       <div className="mb-8">
-        <p className="text-blue-300/70 text-[10px] font-bold tracking-[.2em] uppercase mb-3">Besparing-check</p>
+        <p className="text-blue-300/70 text-[10px] font-bold tracking-[.2em] uppercase mb-3">Jouw besparingscheck</p>
         <h2 className="text-white text-[22px] font-bold leading-snug mb-3">
-          Ontdek of u te veel betaalt voor uw verzuimverzekering.
+          Betaal jij te veel voor je verzuimverzekering?
         </h2>
         <p className="text-blue-200/70 text-sm leading-relaxed">
-          5 korte vragen. Onafhankelijk vergeleken met 6 verzekeraars. Klanten besparen gemiddeld 18%.
+          5 vragen. Vergeleken met 6 verzekeraars. Klanten besparen gemiddeld 18%.
         </p>
       </div>
 
@@ -165,8 +165,8 @@ function Step1({ value, onChange, onNext }) {
   return (
     <div className="flex flex-col h-full">
       <QHead num={1}
-        title="Hoe hoog is het ziekteverzuim in uw praktijk?"
-        helper="Kijk naar het gemiddelde van de laatste 3 jaar. Bij twijfel: kies de klasse iets hoger."
+        title="Hoe hoog is het ziekteverzuim in jouw praktijk?"
+        helper="Neem het gemiddelde van de afgelopen 3 jaar. Twijfel je? Kies de klasse iets hoger."
       />
 
       <div className="bg-[#F5F7FB] rounded-2xl p-1.5 flex gap-1 mb-3">
@@ -188,7 +188,7 @@ function Step1({ value, onChange, onNext }) {
             ? 'bg-white border-[#0B1530] text-[#0B1530] font-semibold'
             : 'bg-white border-dashed border-[#DCE0EC] text-[#8089A8] hover:border-[#5A6488] hover:text-[#5A6488]'
         }`}>
-        Weet ik niet — gebruik landelijk gemiddelde (4,8%)
+        Weet ik niet — gebruik het landelijk gemiddelde (4,8%)
       </button>
 
       <Nav hideBack onNext={onNext} nextDisabled={!value} />
@@ -202,8 +202,8 @@ function Step2({ value, onChange, onBack, onNext }) {
   return (
     <div className="flex flex-col h-full">
       <QHead num={2}
-        title="Wat is uw totale loonsom per jaar?"
-        helper="Tel alle bruto salarissen van uw medewerkers bij elkaar op (vóór belasting). Dit is de basis waarover de premie wordt berekend."
+        title="Wat is jouw totale loonsom per jaar?"
+        helper="Tel alle bruto salarissen van je medewerkers op (vóór belasting). Dit is de basis waarover jouw premie wordt berekend."
       />
 
       <div className="text-center mb-2">
@@ -248,8 +248,8 @@ function Step3({ value, onChange, onBack, onNext }) {
   return (
     <div className="flex flex-col h-full">
       <QHead num={3}
-        title="Hoeveel dagen wachttijd heeft u?"
-        helper='De periode dat u zelf het loon doorbetaalt voordat de verzekering uitkeert. Op uw polisblad als <strong style="color:#0B1530">"eigen risico"</strong>. Hoe langer de wachttijd, hoe lager de premie.'
+        title="Hoeveel dagen wachttijd heb jij?"
+        helper='Dit is de periode dat jij zelf het loon doorbetaalt voordat de verzekering uitkeert. Op je polisblad staat dit als <strong style="color:#0B1530">"eigen risico"</strong>. Hoe langer, hoe lager je premie.'
       />
 
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
@@ -265,7 +265,7 @@ function Step3({ value, onChange, onBack, onNext }) {
         ))}
       </div>
       <p className="text-[13px] text-[#8089A8] italic mt-3">
-        Op uw polisblad staat dit als "eigen risico periode"
+        Staat op je polisblad als "eigen risico periode"
       </p>
 
       <Nav onBack={onBack} onNext={onNext} />
@@ -283,8 +283,8 @@ function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext
   return (
     <div className="flex flex-col h-full">
       <QHead num={4}
-        title="Welk premiepercentage betaalt u nu?"
-        helper={`Het marktgemiddelde voor fysiotherapeuten is <strong style="color:#0B1530">${MARKT_GEMIDDELD}%</strong>. Sleep de slider, of vul uw exacte jaarpremie in.`}
+        title="Welk premiepercentage betaal jij nu?"
+        helper={`Het marktgemiddelde voor fysiotherapeuten is <strong style="color:#0B1530">${MARKT_GEMIDDELD}%</strong>. Sleep de slider of vul je exacte jaarpremie in.`}
       />
 
       <div className="text-center mb-2">
@@ -294,7 +294,7 @@ function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext
         <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-semibold mt-3 ${
           above ? 'bg-[#FFF1EB] text-[#A8401A]' : 'bg-[#D6F2EB] text-[#0E7C66]'
         }`}>
-          {above ? `↑ ${diff.toFixed(1)}% boven marktgemiddelde` : '↓ Onder of gelijk aan marktgemiddelde'}
+          {above ? `↑ ${diff.toFixed(1)}% boven het marktgemiddelde` : '↓ Op of onder het marktgemiddelde'}
         </span>
       </div>
 
@@ -319,7 +319,7 @@ function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext
 
       <div className="mt-4">
         <p className="text-[13px] text-[#5A6488] mb-1.5">
-          Of vul uw exacte jaarpremie in{' '}
+          Of vul je exacte jaarpremie in{' '}
           <span className="text-[10px] bg-[#EBEEF5] px-1.5 py-0.5 rounded font-semibold tracking-wide">OPTIONEEL</span>
         </p>
         <input type="number" min={0} max={999_999} step={500} value={jaarpremie}
@@ -342,7 +342,7 @@ function Step5({ results, effPct, onBack, onNext }) {
   return (
     <div className="flex flex-col h-full">
       <QHead result
-        title={`U bespaart naar verwachting <span style="color:#1040C5">${pctShow}%</span> op uw verzuimverzekering.`}
+        title={`Je bespaart naar verwachting <span style="color:#1040C5">${pctShow}%</span> op je verzuimverzekering.`}
       />
 
       <div className="relative rounded-3xl p-8 mb-3 overflow-hidden"
@@ -355,26 +355,26 @@ function Step5({ results, effPct, onBack, onNext }) {
             <span className="text-white/60 text-[42px]">€&nbsp;</span>{nlNum(besparing)}
           </p>
           <span className="inline-flex items-center gap-2 bg-[#1ABC9C] text-white text-[13px] font-bold px-4 py-1.5 rounded-full mt-3">
-            ↓ {pctShow}% lager dan uw huidige premie
+            ↓ {pctShow}% lager dan je huidige premie
           </span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="bg-[#F5F7FB] rounded-2xl p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Uw huidige premie</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Jouw huidige premie</p>
           <p className="text-[26px] font-bold text-[#2A3454] mt-1.5 tabular-nums">€ {nlNum(huidigePremie)}</p>
           <p className="text-xs text-[#8089A8] mt-1">per jaar · {effPct.toFixed(1)}%</p>
         </div>
         <div className="bg-[#F4F7FD] rounded-2xl p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Verwachte nieuwe premie</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Jouw nieuwe premie via ons</p>
           <p className="text-[26px] font-bold text-[#1040C5] mt-1.5 tabular-nums">€ {nlNum(onzePremie)}</p>
           <p className="text-xs text-[#8089A8] mt-1">per jaar · {ourRate.toFixed(3)}%</p>
         </div>
       </div>
 
       <p className="text-[12px] text-[#8089A8] italic leading-relaxed mb-2">
-        Schatting op basis van mandaat Fysiotherapie 100%/100%/70%/70%. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
+        Schatting op basis van mandaat Fysiotherapie 100%/100%/70%/70%. De exacte premie volgt na een officiële offerteaanvraag.
       </p>
 
       <Nav onBack={onBack} onNext={onNext} nextLabel="Claim deze besparing →" />
@@ -398,16 +398,16 @@ function Step6({ besparing, form, onChange, onBack, onSubmit }) {
   return (
     <div className="flex flex-col h-full">
       <QHead num={5}
-        title="Naar wie sturen we uw besparing?"
-        helper="Persoonlijk overzicht in uw inbox binnen 1 minuut. Geen verkooppraatjes — eerlijke vergelijking met 6 verzekeraars."
+        title="Naar wie sturen we jouw besparing?"
+        helper="Persoonlijk overzicht in je inbox binnen 1 minuut. Geen verkooppraatjes — eerlijke vergelijking met 6 verzekeraars."
       />
 
       {besparing > 0 && (
         <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#EBF8F4] border border-[#1ABC9C] mb-6">
           <div>
-            <p className="text-[10px] font-mono font-semibold uppercase tracking-[.12em] text-[#0E7C66]">Klaar om verzonden te worden</p>
+            <p className="text-[10px] font-mono font-semibold uppercase tracking-[.12em] text-[#0E7C66]">Jouw besparing staat klaar</p>
             <p className="text-[15px] font-semibold text-[#0B1530] mt-1">
-              Uw besparing van <span className="text-[#1040C5] tabular-nums">€ {nlNum(besparing)}</span> per jaar
+              Jouw besparing van <span className="text-[#1040C5] tabular-nums">€ {nlNum(besparing)}</span> per jaar
             </p>
           </div>
           <div className="w-9 h-9 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-base flex-shrink-0">✉</div>
@@ -449,7 +449,7 @@ function Step6({ besparing, form, onChange, onBack, onSubmit }) {
           </button>
           <button type="button" onClick={onBack}
             className="w-full mt-3 text-[#5A6488] text-sm font-medium hover:text-[#0B1530] transition-colors py-2">
-            ← Terug naar uw besparing
+            ← Terug naar jouw besparing
           </button>
         </div>
       </form>
@@ -463,13 +463,13 @@ function Step7({ bedrijf, email, besparing, onRestart }) {
     <div className="flex flex-col h-full justify-center">
       <div className="w-16 h-16 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-3xl font-bold mb-6">✓</div>
       <h1 className="text-[34px] font-bold text-[#0B1530] leading-[1.15] tracking-tight mb-4">
-        Bedankt{bedrijf ? `, ${bedrijf}` : ''}.
+        Goed gedaan{bedrijf ? `, ${bedrijf}` : ''}!
       </h1>
       <p className="text-[#5A6488] text-[15px] leading-relaxed mb-8">
-        Uw persoonlijke overzicht — met een verwachte besparing van{' '}
+        Jouw persoonlijke overzicht — met een verwachte besparing van{' '}
         <strong className="text-[#0B1530]">€ {nlNum(besparing)} per jaar</strong> — is onderweg naar{' '}
-        <strong className="text-[#0B1530]">{email || 'uw inbox'}</strong>.
-        Een adviseur belt u binnen 1 werkdag.
+        <strong className="text-[#0B1530]">{email || 'je inbox'}</strong>.
+        Een adviseur belt je binnen 1 werkdag.
       </p>
       <button onClick={onRestart}
         className="self-start bg-[#F5F7FB] hover:bg-[#EBEEF5] text-[#0B1530] text-[14px] font-medium px-6 py-3 rounded-xl transition-colors">
@@ -537,7 +537,7 @@ export default function App() {
         {step <= 6 && (
           <p className="text-[11px] text-[#8089A8] italic border-t border-[#EBEEF5] pt-5 mt-auto leading-relaxed">
             Deze berekening is een schatting op basis van het mandaat Fysiotherapie 100%/100%/70%/70%
-            en uw opgegeven verzuimprofiel. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
+            en jouw opgegeven verzuimprofiel. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
             Aan deze berekening kunnen geen rechten worden ontleend.
           </p>
         )}

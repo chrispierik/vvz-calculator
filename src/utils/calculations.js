@@ -1,6 +1,6 @@
 export const MARKT_GEMIDDELD    = 5.8
 export const DEFAULT_WACHTDAGEN = 30
-export const WACHTDAGEN_OPTIES  = [10, 20, 30, 65, 130, 261]
+export const WACHTDAGEN_OPTIES  = [10, 65, 20, 30, 130, 261]
 
 const OUR_RATES = {
   10:  3.684,
