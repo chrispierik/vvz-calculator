@@ -261,7 +261,7 @@ function Step1({ value, onChange, onNext }) {
             ? 'bg-white border-[#0B1530] text-[#0B1530] font-semibold'
             : 'bg-white border-dashed border-[#DCE0EC] text-[#8089A8] hover:border-[#5A6488] hover:text-[#5A6488]'
         }`}>
-        Weet ik niet — gebruik het landelijk gemiddelde (4,8%)
+        Weet ik niet, gebruik het landelijk gemiddelde (4,8%)
       </button>
 
       <Nav hideBack onNext={onNext} nextDisabled={!value} />
@@ -621,7 +621,7 @@ function Step7({ bedrijf, email, besparing, onRestart }) {
 // ── App ────────────────────────────────────────────────────────────────────────
 export default function App() {
   const [step, setStep]           = useState(1)
-  const [verzuim, setVerzuim]     = useState(null)
+  const [verzuim, setVerzuim]     = useState('unk')
   const [loon, setLoon]           = useState(800_000)
   const [wachttijd, setWachttijd] = useState(30)
   const [premiePct, setPremiePct] = useState(MARKT_GEMIDDELD)
