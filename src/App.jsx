@@ -176,7 +176,7 @@ function QHead({ num, title, helper, result = false }) {
       <span className={`inline-block text-[10px] md:text-[11px] font-semibold rounded-md px-2.5 py-1 tracking-[.14em] uppercase mb-3 ${
         result ? 'text-[#0E7C66] bg-[#D6F2EB]' : 'text-[#015EE1] bg-[#E6EEFB]'
       }`}>
-        {result ? '✓ Resultaat' : `Vraag ${String(num).padStart(2, '0')} / 05`}
+        {result ? '✓ Resultaat' : `Vraag ${String(num).padStart(2, '0')} / 06`}
       </span>
       <h1 className="text-[22px] md:text-[34px] font-bold text-[#0B1530] leading-[1.2] md:leading-[1.15] tracking-tight mb-2 md:mb-3"
         dangerouslySetInnerHTML={{ __html: title }} />
@@ -189,10 +189,25 @@ function QHead({ num, title, helper, result = false }) {
 }
 
 // ── Shared: navigation ─────────────────────────────────────────────────────────
-function Nav({ onBack, onNext, nextLabel = 'Volgende →', nextDisabled = false, hideBack = false }) {
+function Nav({ onBack, onNext, nextLabel = 'Volgende →', nextDisabled = false, hideBack = false, centeredNext = false }) {
   return (
     <>
       {/* Desktop nav — inline */}
+      {centeredNext ? (
+        <div className="hidden md:flex flex-col items-center gap-3 pt-10 mt-auto">
+          <button
+            onClick={onNext}
+            disabled={nextDisabled}
+            className="w-full bg-[#1ABC9C] hover:bg-[#16A085] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[17px] font-bold px-8 py-5 rounded-xl transition-colors"
+            style={{ boxShadow: '0 12px 28px -10px rgba(26,188,156,.5)' }}
+          >
+            {nextLabel}
+          </button>
+          {!hideBack && (
+            <button onClick={onBack} className="text-[#5A6488] text-sm font-medium hover:text-[#0B1530] transition-colors">← Terug</button>
+          )}
+        </div>
+      ) : (
       <div className="hidden md:flex items-center justify-between pt-10 mt-auto">
         {!hideBack
           ? <button onClick={onBack} className="text-[#5A6488] text-sm font-medium hover:text-[#0B1530] transition-colors">← Terug</button>
@@ -206,6 +221,7 @@ function Nav({ onBack, onNext, nextLabel = 'Volgende →', nextDisabled = false,
           {nextLabel}
         </button>
       </div>
+      )}
 
       {/* Mobile nav — fixed bottom */}
       <div
@@ -504,7 +520,7 @@ function Step5({ results, effPct, onBack, onNext }) {
         </div>
       </div>
 
-      <Nav onBack={onBack} onNext={onNext} nextLabel="Claim deze besparing →" />
+      <Nav onBack={onBack} onNext={onNext} nextLabel="Claim mijn besparing →" centeredNext />
     </div>
   )
 }
@@ -534,6 +550,7 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
           berekening_ons_premiepercentage_pct: results?.ourRate ?? 0,
           berekening_besparing_euro: Math.round(results?.besparing ?? 0),
           berekening_besparing_pct: Math.round(results?.besparingPct ?? 0),
+          naam_contactpersoon: form.naam,
           bedrijfsnaam: form.bedrijf,
           email: form.email,
           telefoonnummer: form.tel,
@@ -544,13 +561,13 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
     setLoading(false)
   }
 
-  const isValid = form.bedrijf && form.email && form.tel
+  const isValid = form.naam && form.bedrijf && form.email && form.tel
 
   return (
     <div className="flex flex-col md:h-full">
       <QHead num={5}
         title="Naar wie sturen we jouw besparing?"
-        helper="Persoonlijk overzicht in je inbox binnen 1 minuut. Geen verkooppraatjes — eerlijke vergelijking met 6 verzekeraars."
+        helper="Persoonlijk overzicht in je inbox binnen 1 minuut. Geen verkooppraatjes. Eerlijke vergelijking met 6 verzekeraars."
       />
 
       {besparing > 0 && (
@@ -568,9 +585,10 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
       <form onSubmit={handleSubmit} className="flex flex-col flex-1">
         <div className="space-y-3.5 md:space-y-4 flex-1">
           {[
-            { key: 'bedrijf', label: 'Bedrijfsnaam',   placeholder: 'Fysiotherapie Voorbeeld B.V.', required: true },
-            { key: 'email',   label: 'E-mailadres',    placeholder: 'naam@bedrijf.nl', type: 'email', required: true },
-            { key: 'tel',     label: 'Telefoonnummer', placeholder: '06 12 34 56 78',  type: 'tel',   required: true },
+            { key: 'naam',    label: 'Volledige naam',  placeholder: 'Jan de Vries',                 required: true },
+            { key: 'bedrijf', label: 'Bedrijfsnaam',    placeholder: 'Fysiotherapie Voorbeeld B.V.', required: true },
+            { key: 'email',   label: 'E-mailadres',     placeholder: 'naam@bedrijf.nl', type: 'email', required: true },
+            { key: 'tel',     label: 'Telefoonnummer',  placeholder: '06 12 34 56 78',  type: 'tel',   required: true },
           ].map(({ key, label, placeholder, type = 'text', required }) => (
             <div key={key}>
               <label className="block text-[12px] md:text-[13px] font-semibold text-[#2A3454] mb-1.5">
@@ -630,21 +648,27 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
 }
 
 // ── Step 7: Bedankt ────────────────────────────────────────────────────────────
-function Step7({ bedrijf, email, besparing, onRestart }) {
+function Step7({ naam, email, besparing, onRestart }) {
   return (
     <div className="flex flex-col pt-4 md:pt-0 md:h-full md:justify-center">
       <div className="w-14 h-14 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-3xl font-bold mb-5 md:mb-6">✓</div>
       <h1 className="text-[26px] md:text-[34px] font-bold text-[#0B1530] leading-[1.15] tracking-tight mb-3 md:mb-4">
-        Goed gedaan{bedrijf ? `, ${bedrijf}` : ''}!
+        Goed gedaan{naam ? `, ${naam}` : ''}!
       </h1>
-      <p className="text-[#5A6488] text-[14px] md:text-[15px] leading-relaxed mb-7 md:mb-8">
-        Jouw persoonlijke overzicht — met een verwachte besparing van{' '}
-        <strong className="text-[#0B1530]">€ {nlNum(besparing)} per jaar</strong> — is onderweg naar{' '}
-        <strong className="text-[#0B1530]">{email || 'je inbox'}</strong>.
-        Een adviseur belt je binnen 1 werkdag.
+      <p className="text-[#5A6488] text-[14px] md:text-[15px] leading-relaxed mb-3 md:mb-4">
+        Bedankt voor je aanvraag. We nemen zo snel mogelijk contact met je op om de besparing van{' '}
+        <strong className="text-[#0B1530]">€ {nlNum(besparing)} per jaar</strong> samen met je te realiseren.
       </p>
+      <p className="text-[#5A6488] text-[14px] md:text-[15px] leading-relaxed mb-7 md:mb-8">
+        Je ontvangt een bevestiging op <strong className="text-[#0B1530]">{email || 'je inbox'}</strong>. Liever meteen aan de slag? Plan direct een gesprek in met één van onze adviseurs.
+      </p>
+      <a href="https://calendly.com/n-dugardijn-dugardijn/30min" target="_blank" rel="noopener noreferrer"
+        className="self-start bg-[#1ABC9C] hover:bg-[#16A085] text-white text-[15px] font-bold px-8 py-4 rounded-xl transition-colors mb-3"
+        style={{ boxShadow: '0 12px 28px -10px rgba(26,188,156,.5)' }}>
+        Plan een gesprek in →
+      </a>
       <button onClick={onRestart}
-        className="self-start bg-[#F5F7FB] hover:bg-[#EBEEF5] text-[#0B1530] text-[14px] font-medium px-6 py-3 rounded-xl transition-colors">
+        className="self-start text-[#5A6488] text-[14px] font-medium hover:text-[#0B1530] transition-colors py-2">
         Nieuwe berekening
       </button>
     </div>
@@ -659,7 +683,7 @@ export default function App() {
   const [wachttijd, setWachttijd] = useState(30)
   const [premiePct, setPremiePct] = useState(MARKT_GEMIDDELD)
   const [jaarpremie, setJaarpremie] = useState('')
-  const [form, setForm]           = useState({ bedrijf: '', email: '', tel: '' })
+  const [form, setForm]           = useState({ naam: '', bedrijf: '', email: '', tel: '' })
   const [results, setResults]     = useState(null)
   const [effPct, setEffPct]       = useState(MARKT_GEMIDDELD)
 
@@ -678,7 +702,7 @@ export default function App() {
 
   const restart = () => {
     setStep(1); setVerzuim(null); setLoon(800_000); setWachttijd(30)
-    setPremiePct(MARKT_GEMIDDELD); setJaarpremie(''); setForm({ bedrijf: '', email: '', tel: '' })
+    setPremiePct(MARKT_GEMIDDELD); setJaarpremie(''); setForm({ naam: '', bedrijf: '', email: '', tel: '' })
     setResults(null); setEffPct(MARKT_GEMIDDELD)
   }
 
@@ -713,7 +737,7 @@ export default function App() {
               effPct={effPct} results={results} />
           )}
           {step === 7 && (
-            <Step7 bedrijf={form.bedrijf} email={form.email}
+            <Step7 naam={form.naam} email={form.email}
               besparing={results?.besparing ?? 0} onRestart={restart} />
           )}
 
