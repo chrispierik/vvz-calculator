@@ -17,7 +17,17 @@ const LOON_CHIPS = [
   { label: '€ 2M',   value: 2_000_000 },
 ]
 
-const STEP_LABELS = ['Verzuimcijfer', 'Loonsom', 'Wachttijd', 'Huidige premie', 'Jouw besparing', 'Jouw gegevens']
+const STEP_LABELS        = ['Verzuimcijfer', 'Loonsom', 'Wachttijd', 'Huidige premie', 'Jouw besparing', 'Jouw gegevens']
+const MOBILE_STEP_LABELS = ['Verzuim', 'Loonsom', 'Wachttijd', 'Premie', 'Besparing', 'Gegevens']
+
+const WACHTDAGEN_META = {
+  10:  { hint: 'Tien werkdagen' },
+  20:  { hint: 'Drie weken' },
+  30:  { hint: 'Één maand' },
+  65:  { hint: 'Twee maanden' },
+  130: { hint: 'Vier maanden' },
+  261: { hint: 'Negen maanden' },
+}
 
 function formatLoonShort(v) {
   if (v >= 1_000_000) return `€ ${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M`
@@ -46,6 +56,39 @@ function Logo() {
   )
 }
 
+// ── Mobile Top Bar ─────────────────────────────────────────────────────────────
+function MobileTopBar({ step }) {
+  if (step > 6) return null
+  const label = MOBILE_STEP_LABELS[step - 1] || ''
+  return (
+    <div
+      className="md:hidden sticky top-0 z-20 overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #0A2A8A 0%, #1040C5 100%)' }}
+    >
+      <svg width="180" height="180" viewBox="0 0 280 280"
+        className="absolute top-[-60px] right-[-60px] opacity-[0.08] pointer-events-none" aria-hidden="true">
+        <path d="M155 270 L20 30 Q10 10 30 10 L260 10 Q280 10 270 30 L155 270 Z" fill="white" />
+      </svg>
+      <div className="relative px-5 pt-5 pb-[22px]">
+        <div className="flex items-center justify-between mb-[18px]">
+          <Logo />
+          <div className="text-white text-xs font-semibold tracking-[.02em] px-3 py-[5px] rounded-full"
+            style={{ background: 'rgba(255,255,255,0.12)' }}>
+            Stap {step} / 6
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {MOBILE_STEP_LABELS.map((_, i) => (
+            <div key={i} className="flex-1 h-1 rounded-sm transition-colors duration-300"
+              style={{ background: i + 1 <= step ? '#1ABC9C' : 'rgba(255,255,255,0.18)' }} />
+          ))}
+        </div>
+        <div className="text-white/85 text-[13px] mt-2.5">{label}</div>
+      </div>
+    </div>
+  )
+}
+
 // ── Sidebar ────────────────────────────────────────────────────────────────────
 function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
   const verzuimLabel = { '0-2': '0–2%', '2-4': '2–4%', '4-6': '4–6%', '6-8': '6–8%', '8+': '8%+', unk: 'gem.' }
@@ -58,7 +101,7 @@ function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
 
   return (
     <aside
-      className="w-[340px] min-h-screen relative overflow-hidden flex flex-col px-7 py-8 flex-shrink-0"
+      className="hidden md:flex w-[340px] min-h-screen relative overflow-hidden flex-col px-7 py-8 flex-shrink-0"
       style={{ background: 'linear-gradient(180deg, #0A2A8A 0%, #1040C5 100%)' }}
     >
       <div className="absolute bottom-[-50px] right-[-50px] w-56 h-56 border-2 border-white/10 rotate-45 rounded-2xl pointer-events-none" />
@@ -125,16 +168,16 @@ function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
 // ── Shared: question header ────────────────────────────────────────────────────
 function QHead({ num, title, helper, result = false }) {
   return (
-    <div className="mb-8">
-      <span className={`inline-block text-[11px] font-semibold rounded-md px-2.5 py-1 tracking-[.14em] uppercase mb-3 ${
+    <div className="mb-6 md:mb-8">
+      <span className={`inline-block text-[10px] md:text-[11px] font-semibold rounded-md px-2.5 py-1 tracking-[.14em] uppercase mb-3 ${
         result ? 'text-[#0E7C66] bg-[#D6F2EB]' : 'text-[#015EE1] bg-[#E6EEFB]'
       }`}>
         {result ? '✓ Resultaat' : `Vraag ${String(num).padStart(2, '0')} / 05`}
       </span>
-      <h1 className="text-[34px] font-bold text-[#0B1530] leading-[1.15] tracking-tight mb-3"
+      <h1 className="text-[22px] md:text-[34px] font-bold text-[#0B1530] leading-[1.2] md:leading-[1.15] tracking-tight mb-2 md:mb-3"
         dangerouslySetInnerHTML={{ __html: title }} />
       {helper && (
-        <p className="text-[#5A6488] text-[15px] leading-relaxed"
+        <p className="text-[#5A6488] text-[14px] md:text-[15px] leading-relaxed"
           dangerouslySetInnerHTML={{ __html: helper }} />
       )}
     </div>
@@ -144,26 +187,56 @@ function QHead({ num, title, helper, result = false }) {
 // ── Shared: navigation ─────────────────────────────────────────────────────────
 function Nav({ onBack, onNext, nextLabel = 'Volgende →', nextDisabled = false, hideBack = false }) {
   return (
-    <div className="flex items-center justify-between pt-10 mt-auto">
-      {!hideBack
-        ? <button onClick={onBack} className="text-[#5A6488] text-sm font-medium hover:text-[#0B1530] transition-colors">← Terug</button>
-        : <div />}
-      <button
-        onClick={onNext}
-        disabled={nextDisabled}
-        className="bg-[#1ABC9C] hover:bg-[#16A085] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[15px] font-bold px-8 py-3.5 rounded-xl transition-colors"
-        style={{ boxShadow: '0 12px 28px -10px rgba(26,188,156,.5)' }}
+    <>
+      {/* Desktop nav — inline */}
+      <div className="hidden md:flex items-center justify-between pt-10 mt-auto">
+        {!hideBack
+          ? <button onClick={onBack} className="text-[#5A6488] text-sm font-medium hover:text-[#0B1530] transition-colors">← Terug</button>
+          : <div />}
+        <button
+          onClick={onNext}
+          disabled={nextDisabled}
+          className="bg-[#1ABC9C] hover:bg-[#16A085] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[15px] font-bold px-8 py-3.5 rounded-xl transition-colors"
+          style={{ boxShadow: '0 12px 28px -10px rgba(26,188,156,.5)' }}
+        >
+          {nextLabel}
+        </button>
+      </div>
+
+      {/* Mobile nav — sticky bottom */}
+      <div
+        className="md:hidden sticky bottom-0 z-10 -mx-5 border-t border-[#EBEEF5] px-5 pt-3.5 pb-7 flex items-center gap-2.5"
+        style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}
       >
-        {nextLabel}
-      </button>
-    </div>
+        {!hideBack ? (
+          <button
+            onClick={onBack}
+            className="w-12 h-12 rounded-xl bg-[#F5F7FB] border border-[#EBEEF5] text-[#2A3454] text-base flex-shrink-0 flex items-center justify-center"
+          >←</button>
+        ) : (
+          <div className="w-12 flex-shrink-0" />
+        )}
+        <button
+          onClick={onNext}
+          disabled={nextDisabled}
+          className="flex-1 text-[15px] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
+          style={{
+            background: nextDisabled ? '#EBEEF5' : '#1ABC9C',
+            color: nextDisabled ? '#8089A8' : '#fff',
+            boxShadow: nextDisabled ? 'none' : '0 12px 28px -10px rgba(26,188,156,.5)',
+          }}
+        >
+          {nextLabel}
+        </button>
+      </div>
+    </>
   )
 }
 
 // ── Step 1: Verzuimcijfer ──────────────────────────────────────────────────────
 function Step1({ value, onChange, onNext }) {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col md:h-full">
       <QHead num={1}
         title="Hoe hoog is het ziekteverzuim in jouw praktijk?"
         helper="Neem het gemiddelde van de afgelopen 3 jaar. Twijfel je? Kies de klasse iets hoger."
@@ -172,7 +245,7 @@ function Step1({ value, onChange, onNext }) {
       <div className="bg-[#F5F7FB] rounded-2xl p-1.5 flex gap-1 mb-3">
         {VERZUIM_OPTIONS.map((opt) => (
           <button key={opt.value} onClick={() => onChange(opt.value)}
-            className={`flex-1 py-3.5 rounded-xl text-[15px] transition-all ${
+            className={`flex-1 py-3 md:py-3.5 rounded-xl text-[13px] md:text-[15px] transition-all ${
               value === opt.value
                 ? 'bg-white text-[#0B1530] font-bold shadow-sm'
                 : 'text-[#5A6488] font-medium hover:text-[#0B1530]'
@@ -183,7 +256,7 @@ function Step1({ value, onChange, onNext }) {
       </div>
 
       <button onClick={() => onChange('unk')}
-        className={`w-full py-4 px-6 rounded-2xl text-[15px] border-2 transition-all ${
+        className={`w-full py-3.5 md:py-4 px-6 rounded-2xl text-[13px] md:text-[15px] border-2 transition-all ${
           value === 'unk'
             ? 'bg-white border-[#0B1530] text-[#0B1530] font-semibold'
             : 'bg-white border-dashed border-[#DCE0EC] text-[#8089A8] hover:border-[#5A6488] hover:text-[#5A6488]'
@@ -200,7 +273,7 @@ function Step1({ value, onChange, onNext }) {
 function Step2({ value, onChange, onBack, onNext }) {
   const pct = ((value - 100_000) / 2_900_000) * 100
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col md:h-full">
       <QHead num={2}
         title="Wat is jouw totale loonsom per jaar?"
         helper="Tel alle bruto salarissen van je medewerkers op (vóór belasting). Dit is de basis waarover jouw premie wordt berekend."
@@ -208,12 +281,12 @@ function Step2({ value, onChange, onBack, onNext }) {
 
       <div className="text-center mb-2">
         <p className="text-[11px] font-mono text-[#8089A8] uppercase tracking-[.1em]">Loonsom per jaar</p>
-        <p className="text-[60px] font-bold text-[#0B1530] leading-none tracking-tight tabular-nums mt-2">
+        <p className="text-[40px] md:text-[60px] font-bold text-[#0B1530] leading-none tracking-tight tabular-nums mt-2">
           <span className="text-[#8089A8]">€&nbsp;</span>{nlNum(value)}
         </p>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5 md:mt-6">
         <input type="range" min={100_000} max={3_000_000} step={10_000} value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           style={{ background: `linear-gradient(to right, #015EE1 ${pct}%, #E2E8F0 ${pct}%)` }}
@@ -225,7 +298,7 @@ function Step2({ value, onChange, onBack, onNext }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mt-5">
+      <div className="flex flex-wrap gap-2 mt-4 md:mt-5">
         {LOON_CHIPS.map((chip) => (
           <button key={chip.value} onClick={() => onChange(chip.value)}
             className={`px-4 py-2 rounded-full text-[13px] font-medium border transition-all ${
@@ -246,13 +319,14 @@ function Step2({ value, onChange, onBack, onNext }) {
 // ── Step 3: Wachttijd ──────────────────────────────────────────────────────────
 function Step3({ value, onChange, onBack, onNext }) {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col md:h-full">
       <QHead num={3}
         title="Hoeveel dagen wachttijd heb jij?"
         helper='Dit is de periode dat jij zelf het loon doorbetaalt voordat de verzekering uitkeert. Op je polisblad staat dit als <strong style="color:#0B1530">"eigen risico"</strong>. Hoe langer, hoe lager je premie.'
       />
 
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+      {/* Desktop: big number grid */}
+      <div className="hidden md:grid grid-cols-3 gap-3 sm:grid-cols-6">
         {WACHTDAGEN_OPTIES.map((d) => (
           <button key={d} onClick={() => onChange(d)}
             className={`py-5 rounded-2xl text-[26px] font-bold border-2 transition-all ${
@@ -264,9 +338,33 @@ function Step3({ value, onChange, onBack, onNext }) {
           </button>
         ))}
       </div>
-      <p className="text-[13px] text-[#8089A8] italic mt-3">
+      <p className="hidden md:block text-[13px] text-[#8089A8] italic mt-3">
         Staat op je polisblad als "eigen risico periode"
       </p>
+
+      {/* Mobile: vertical radio list */}
+      <div className="md:hidden flex flex-col gap-2">
+        {WACHTDAGEN_OPTIES.map((d) => (
+          <button key={d} onClick={() => onChange(d)}
+            className={`flex items-center justify-between p-4 rounded-xl border-[1.5px] text-left transition-all ${
+              value === d
+                ? 'border-[#015EE1] bg-[#F4F7FD]'
+                : 'border-[#EBEEF5] bg-white'
+            }`}>
+            <div>
+              <div className="text-[16px] font-semibold text-[#0B1530]">{d} dagen</div>
+              <div className="text-[12px] text-[#8089A8] mt-0.5">{WACHTDAGEN_META[d]?.hint}</div>
+            </div>
+            <div className={`w-[22px] h-[22px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 text-xs font-bold transition-all ${
+              value === d
+                ? 'bg-[#1ABC9C] border-transparent text-white'
+                : 'border-[#B7BED4] bg-transparent text-transparent'
+            }`}>
+              ✓
+            </div>
+          </button>
+        ))}
+      </div>
 
       <Nav onBack={onBack} onNext={onNext} />
     </div>
@@ -281,24 +379,24 @@ function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext
   const euros = Math.round(loon * (value / 100))
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col md:h-full">
       <QHead num={4}
         title="Welk premiepercentage betaal jij nu?"
         helper={`Het marktgemiddelde voor fysiotherapeuten is <strong style="color:#0B1530">${MARKT_GEMIDDELD}%</strong>. Sleep de slider of vul je exacte jaarpremie in.`}
       />
 
       <div className="text-center mb-2">
-        <p className={`text-[80px] font-bold leading-none tracking-tight tabular-nums ${above ? 'text-[#D14D2C]' : 'text-[#0B1530]'}`}>
-          {value.toFixed(1)}<span className="text-[44px] text-[#8089A8]">%</span>
+        <p className={`text-[56px] md:text-[80px] font-bold leading-none tracking-tight tabular-nums ${above ? 'text-[#D14D2C]' : 'text-[#0B1530]'}`}>
+          {value.toFixed(1)}<span className="text-[32px] md:text-[44px] text-[#8089A8]">%</span>
         </p>
-        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-semibold mt-3 ${
+        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[12px] md:text-[13px] font-semibold mt-2 md:mt-3 ${
           above ? 'bg-[#FFF1EB] text-[#A8401A]' : 'bg-[#D6F2EB] text-[#0E7C66]'
         }`}>
           {above ? `↑ ${diff.toFixed(1)}% boven het marktgemiddelde` : '↓ Op of onder het marktgemiddelde'}
         </span>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5 md:mt-6">
         <input type="range" min={0} max={12} step={0.1} value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           style={{ background: `linear-gradient(to right, ${above ? '#D14D2C' : '#015EE1'} ${pct}%, #E2E8F0 ${pct}%)` }}
@@ -310,22 +408,22 @@ function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext
         </div>
       </div>
 
-      <div className="mt-5 p-4 bg-[#F5F7FB] rounded-2xl flex items-center justify-between">
+      <div className="mt-4 md:mt-5 p-4 bg-[#F5F7FB] rounded-2xl flex items-center justify-between">
         <div>
           <p className="text-[11px] text-[#5A6488] uppercase tracking-[.08em]">Komt neer op</p>
-          <p className="text-[22px] font-bold text-[#0B1530] mt-1 tabular-nums">€ {nlNum(euros)} / jaar</p>
+          <p className="text-[18px] md:text-[22px] font-bold text-[#0B1530] mt-1 tabular-nums">€ {nlNum(euros)} / jaar</p>
         </div>
       </div>
 
       <div className="mt-4">
-        <p className="text-[13px] text-[#5A6488] mb-1.5">
+        <p className="text-[12px] md:text-[13px] text-[#5A6488] mb-1.5">
           Of vul je exacte jaarpremie in{' '}
           <span className="text-[10px] bg-[#EBEEF5] px-1.5 py-0.5 rounded font-semibold tracking-wide">OPTIONEEL</span>
         </p>
         <input type="number" min={0} max={999_999} step={500} value={jaarpremie}
           onChange={(e) => onJaarpremie(e.target.value)}
           placeholder="bijv. 12.500"
-          className="w-full bg-white border-[1.5px] border-[#DCE0EC] rounded-xl px-4 py-3.5 text-[15px] text-[#0B1530] placeholder-[#8089A8] focus:outline-none focus:border-[#1040C5] transition-all"
+          className="w-full bg-white border-[1.5px] border-[#DCE0EC] rounded-xl px-4 py-3 md:py-3.5 text-[15px] text-[#0B1530] placeholder-[#8089A8] focus:outline-none focus:border-[#1040C5] transition-all"
         />
       </div>
 
@@ -340,40 +438,40 @@ function Step5({ results, effPct, onBack, onNext }) {
   const pctShow = Math.round(besparingPct)
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col md:h-full">
       <QHead result
         title={`Je bespaart naar verwachting <span style="color:#1040C5">${pctShow}%</span> op je verzuimverzekering.`}
       />
 
-      <div className="relative rounded-3xl p-8 mb-3 overflow-hidden"
+      <div className="relative rounded-2xl md:rounded-3xl p-6 md:p-8 mb-3 overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #1040C5 0%, #015EE1 100%)', boxShadow: '0 16px 40px -12px rgba(1,94,225,.35)' }}>
         <div className="absolute top-[-80px] right-[-80px] w-64 h-64 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(26,188,156,.4), transparent 70%)' }} />
         <div className="relative z-10">
-          <p className="text-[11px] font-mono text-white/70 uppercase tracking-[.14em]">Geschatte jaarbesparing</p>
-          <p className="text-[68px] font-bold text-white leading-none tracking-tight tabular-nums mt-1.5">
-            <span className="text-white/60 text-[42px]">€&nbsp;</span>{nlNum(besparing)}
+          <p className="text-[10px] md:text-[11px] font-mono text-white/70 uppercase tracking-[.14em]">Geschatte jaarbesparing</p>
+          <p className="text-[48px] md:text-[68px] font-bold text-white leading-none tracking-tight tabular-nums mt-1.5">
+            <span className="text-white/60 text-[28px] md:text-[42px]">€&nbsp;</span>{nlNum(besparing)}
           </p>
-          <span className="inline-flex items-center gap-2 bg-[#1ABC9C] text-white text-[13px] font-bold px-4 py-1.5 rounded-full mt-3">
+          <span className="inline-flex items-center gap-2 bg-[#1ABC9C] text-white text-[12px] md:text-[13px] font-bold px-4 py-1.5 rounded-full mt-3">
             ↓ {pctShow}% lager dan je huidige premie
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="bg-[#F5F7FB] rounded-2xl p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Jouw huidige premie</p>
-          <p className="text-[26px] font-bold text-[#2A3454] mt-1.5 tabular-nums">€ {nlNum(huidigePremie)}</p>
+      <div className="grid grid-cols-2 gap-3 mb-4 md:mb-5">
+        <div className="bg-[#F5F7FB] rounded-xl md:rounded-2xl p-4 md:p-5">
+          <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Jouw huidige premie</p>
+          <p className="text-[20px] md:text-[26px] font-bold text-[#2A3454] mt-1.5 tabular-nums">€ {nlNum(huidigePremie)}</p>
           <p className="text-xs text-[#8089A8] mt-1">per jaar · {effPct.toFixed(1)}%</p>
         </div>
-        <div className="bg-[#F4F7FD] rounded-2xl p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Jouw nieuwe premie via ons</p>
-          <p className="text-[26px] font-bold text-[#1040C5] mt-1.5 tabular-nums">€ {nlNum(onzePremie)}</p>
+        <div className="bg-[#F4F7FD] rounded-xl md:rounded-2xl p-4 md:p-5">
+          <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[.08em] text-[#5A6488]">Jouw nieuwe premie via ons</p>
+          <p className="text-[20px] md:text-[26px] font-bold text-[#1040C5] mt-1.5 tabular-nums">€ {nlNum(onzePremie)}</p>
           <p className="text-xs text-[#8089A8] mt-1">per jaar · {ourRate.toFixed(3)}%</p>
         </div>
       </div>
 
-      <p className="text-[12px] text-[#8089A8] italic leading-relaxed mb-2">
+      <p className="hidden md:block text-[12px] text-[#8089A8] italic leading-relaxed mb-2">
         Schatting op basis van mandaat Fysiotherapie 100%/100%/70%/70%. De exacte premie volgt na een officiële offerteaanvraag.
       </p>
 
@@ -417,45 +515,48 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
     setLoading(false)
   }
 
+  const isValid = form.bedrijf && form.email && form.tel
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col md:h-full">
       <QHead num={5}
         title="Naar wie sturen we jouw besparing?"
         helper="Persoonlijk overzicht in je inbox binnen 1 minuut. Geen verkooppraatjes — eerlijke vergelijking met 6 verzekeraars."
       />
 
       {besparing > 0 && (
-        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#EBF8F4] border border-[#1ABC9C] mb-6">
+        <div className="flex items-center justify-between gap-4 p-3.5 md:p-4 rounded-xl md:rounded-2xl bg-[#EBF8F4] border border-[#1ABC9C] mb-5 md:mb-6">
           <div>
-            <p className="text-[10px] font-mono font-semibold uppercase tracking-[.12em] text-[#0E7C66]">Jouw besparing staat klaar</p>
-            <p className="text-[15px] font-semibold text-[#0B1530] mt-1">
+            <p className="text-[9px] md:text-[10px] font-mono font-semibold uppercase tracking-[.12em] text-[#0E7C66]">Jouw besparing staat klaar</p>
+            <p className="text-[14px] md:text-[15px] font-semibold text-[#0B1530] mt-1">
               Jouw besparing van <span className="text-[#1040C5] tabular-nums">€ {nlNum(besparing)}</span> per jaar
             </p>
           </div>
-          <div className="w-9 h-9 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-base flex-shrink-0">✉</div>
+          <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-sm flex-shrink-0">✉</div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col flex-1">
-        <div className="space-y-4 flex-1">
+        <div className="space-y-3.5 md:space-y-4 flex-1">
           {[
             { key: 'bedrijf', label: 'Bedrijfsnaam',   placeholder: 'Fysiotherapie Voorbeeld B.V.', required: true },
             { key: 'email',   label: 'E-mailadres',    placeholder: 'naam@bedrijf.nl', type: 'email', required: true },
             { key: 'tel',     label: 'Telefoonnummer', placeholder: '06 12 34 56 78',  type: 'tel',   required: true },
           ].map(({ key, label, placeholder, type = 'text', required }) => (
             <div key={key}>
-              <label className="block text-[13px] font-semibold text-[#2A3454] mb-1.5">
+              <label className="block text-[12px] md:text-[13px] font-semibold text-[#2A3454] mb-1.5">
                 {label} {required && <span className="text-[#1ABC9C]">*</span>}
               </label>
               <input type={type} value={form[key]} onChange={set(key)} required={required} placeholder={placeholder}
-                className="w-full bg-white border-[1.5px] border-[#DCE0EC] rounded-xl px-4 py-3.5 text-[15px] text-[#0B1530] placeholder-[#8089A8] focus:outline-none focus:border-[#1040C5] transition-all"
+                className="w-full bg-white border-[1.5px] border-[#DCE0EC] rounded-xl px-4 py-3 md:py-3.5 text-[15px] text-[#0B1530] placeholder-[#8089A8] focus:outline-none focus:border-[#1040C5] transition-all"
               />
             </div>
           ))}
           <p className="text-xs text-[#8089A8]">🔒 Versleuteld verzonden · we delen niets met derden</p>
         </div>
 
-        <div className="pt-6">
+        {/* Desktop submit */}
+        <div className="hidden md:block pt-6">
           <button type="submit" disabled={loading}
             className="w-full bg-[#1ABC9C] hover:bg-[#16A085] disabled:opacity-60 text-white text-[15px] font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
             style={{ boxShadow: '0 12px 28px -10px rgba(26,188,156,.5)' }}>
@@ -474,6 +575,26 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
             ← Terug naar jouw besparing
           </button>
         </div>
+
+        {/* Mobile submit — sticky bottom */}
+        <div
+          className="md:hidden sticky bottom-0 z-10 -mx-5 border-t border-[#EBEEF5] px-5 pt-3.5 pb-7 flex items-center gap-2.5"
+          style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}
+        >
+          <button type="button" onClick={onBack}
+            className="w-12 h-12 rounded-xl bg-[#F5F7FB] border border-[#EBEEF5] text-[#2A3454] text-base flex-shrink-0 flex items-center justify-center">
+            ←
+          </button>
+          <button type="submit" disabled={loading || !isValid}
+            className="flex-1 text-[15px] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
+            style={{
+              background: loading || !isValid ? '#EBEEF5' : '#1ABC9C',
+              color: loading || !isValid ? '#8089A8' : '#fff',
+              boxShadow: loading || !isValid ? 'none' : '0 12px 28px -10px rgba(26,188,156,.5)',
+            }}>
+            {loading ? 'Bezig...' : 'Stuur naar mij →'}
+          </button>
+        </div>
       </form>
     </div>
   )
@@ -482,12 +603,12 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
 // ── Step 7: Bedankt ────────────────────────────────────────────────────────────
 function Step7({ bedrijf, email, besparing, onRestart }) {
   return (
-    <div className="flex flex-col h-full justify-center">
-      <div className="w-16 h-16 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-3xl font-bold mb-6">✓</div>
-      <h1 className="text-[34px] font-bold text-[#0B1530] leading-[1.15] tracking-tight mb-4">
+    <div className="flex flex-col pt-4 md:pt-0 md:h-full md:justify-center">
+      <div className="w-14 h-14 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-3xl font-bold mb-5 md:mb-6">✓</div>
+      <h1 className="text-[26px] md:text-[34px] font-bold text-[#0B1530] leading-[1.15] tracking-tight mb-3 md:mb-4">
         Goed gedaan{bedrijf ? `, ${bedrijf}` : ''}!
       </h1>
-      <p className="text-[#5A6488] text-[15px] leading-relaxed mb-8">
+      <p className="text-[#5A6488] text-[14px] md:text-[15px] leading-relaxed mb-7 md:mb-8">
         Jouw persoonlijke overzicht — met een verwachte besparing van{' '}
         <strong className="text-[#0B1530]">€ {nlNum(besparing)} per jaar</strong> — is onderweg naar{' '}
         <strong className="text-[#0B1530]">{email || 'je inbox'}</strong>.
@@ -503,15 +624,15 @@ function Step7({ bedrijf, email, besparing, onRestart }) {
 
 // ── App ────────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [step, setStep]         = useState(1)
-  const [verzuim, setVerzuim]   = useState(null)
-  const [loon, setLoon]         = useState(800_000)
+  const [step, setStep]           = useState(1)
+  const [verzuim, setVerzuim]     = useState(null)
+  const [loon, setLoon]           = useState(800_000)
   const [wachttijd, setWachttijd] = useState(30)
   const [premiePct, setPremiePct] = useState(MARKT_GEMIDDELD)
   const [jaarpremie, setJaarpremie] = useState('')
-  const [form, setForm]         = useState({ bedrijf: '', email: '', tel: '' })
-  const [results, setResults]   = useState(null)
-  const [effPct, setEffPct]     = useState(MARKT_GEMIDDELD)
+  const [form, setForm]           = useState({ bedrijf: '', email: '', tel: '' })
+  const [results, setResults]     = useState(null)
+  const [effPct, setEffPct]       = useState(MARKT_GEMIDDELD)
 
   const next = () => setStep((s) => s + 1)
   const back = () => setStep((s) => s - 1)
@@ -533,40 +654,48 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex font-sans bg-[#FAFBFE]">
+      {/* Desktop sidebar — hidden on mobile */}
       <Sidebar step={step} verzuim={verzuim} loon={loon} wachttijd={wachttijd} premiePct={premiePct} />
 
-      <main className="flex-1 flex flex-col px-14 py-14" style={{ maxWidth: 760 }}>
-        {step === 1 && <Step1 value={verzuim} onChange={setVerzuim} onNext={next} />}
-        {step === 2 && <Step2 value={loon} onChange={setLoon} onBack={back} onNext={next} />}
-        {step === 3 && <Step3 value={wachttijd} onChange={setWachttijd} onBack={back} onNext={next} />}
-        {step === 4 && (
-          <Step4 value={premiePct} onChange={setPremiePct}
-            jaarpremie={jaarpremie} onJaarpremie={setJaarpremie}
-            loon={loon} onBack={back} onNext={computeResults} />
-        )}
-        {step === 5 && results && (
-          <Step5 results={results} effPct={effPct} onBack={back} onNext={next} />
-        )}
-        {step === 6 && (
-          <Step6 besparing={results?.besparing ?? 0}
-            form={form} onChange={setForm} onBack={back} onSubmit={next}
-            verzuim={verzuim} loon={loon} wachttijd={wachttijd}
-            premiePct={premiePct} jaarpremie={jaarpremie}
-            effPct={effPct} results={results} />
-        )}
-        {step === 7 && (
-          <Step7 bedrijf={form.bedrijf} email={form.email}
-            besparing={results?.besparing ?? 0} onRestart={restart} />
-        )}
+      {/* Content area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile top bar */}
+        <MobileTopBar step={step} />
 
-        {step <= 6 && (
-          <p className="text-[11px] text-[#8089A8] italic border-t border-[#EBEEF5] pt-5 mt-auto leading-relaxed">
-            Deze berekening is een schatting op basis van het mandaat Fysiotherapie 100%/100%/70%/70%
-            en jouw opgegeven verzuimprofiel. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
-            Aan deze berekening kunnen geen rechten worden ontleend.
-          </p>
-        )}
-      </main>
+        {/* Main */}
+        <main className="flex-1 flex flex-col px-5 py-5 md:px-14 md:py-14" style={{ maxWidth: 760 }}>
+          {step === 1 && <Step1 value={verzuim} onChange={setVerzuim} onNext={next} />}
+          {step === 2 && <Step2 value={loon} onChange={setLoon} onBack={back} onNext={next} />}
+          {step === 3 && <Step3 value={wachttijd} onChange={setWachttijd} onBack={back} onNext={next} />}
+          {step === 4 && (
+            <Step4 value={premiePct} onChange={setPremiePct}
+              jaarpremie={jaarpremie} onJaarpremie={setJaarpremie}
+              loon={loon} onBack={back} onNext={computeResults} />
+          )}
+          {step === 5 && results && (
+            <Step5 results={results} effPct={effPct} onBack={back} onNext={next} />
+          )}
+          {step === 6 && (
+            <Step6 besparing={results?.besparing ?? 0}
+              form={form} onChange={setForm} onBack={back} onSubmit={next}
+              verzuim={verzuim} loon={loon} wachttijd={wachttijd}
+              premiePct={premiePct} jaarpremie={jaarpremie}
+              effPct={effPct} results={results} />
+          )}
+          {step === 7 && (
+            <Step7 bedrijf={form.bedrijf} email={form.email}
+              besparing={results?.besparing ?? 0} onRestart={restart} />
+          )}
+
+          {step <= 6 && (
+            <p className="hidden md:block text-[11px] text-[#8089A8] italic border-t border-[#EBEEF5] pt-5 mt-auto leading-relaxed">
+              Deze berekening is een schatting op basis van het mandaat Fysiotherapie 100%/100%/70%/70%
+              en jouw opgegeven verzuimprofiel. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
+              Aan deze berekening kunnen geen rechten worden ontleend.
+            </p>
+          )}
+        </main>
+      </div>
     </div>
   )
 }

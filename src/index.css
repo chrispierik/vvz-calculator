@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --vv-blue-900: #0A2A8A;
+  --vv-blue-700: #1040C5;
+  --vv-blue-600: #015EE1;
+  --vv-green-500: #1ABC9C;
+  --vv-green-600: #16A085;
+  --vv-ink-900: #0B1530;
+  --vv-ink-700: #2A3454;
+  --vv-ink-500: #5A6488;
+  --vv-ink-400: #8089A8;
+  --vv-ink-200: #DCE0EC;
+  --vv-ink-100: #EBEEF5;
+  --vv-ink-050: #F5F7FB;
+}
+
 /* Custom slider styling */
 input[type='range'] {
   -webkit-appearance: none;
