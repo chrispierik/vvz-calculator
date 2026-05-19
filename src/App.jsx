@@ -20,14 +20,6 @@ const LOON_CHIPS = [
 const STEP_LABELS        = ['Verzuimcijfer', 'Loonsom', 'Wachttijd', 'Huidige premie', 'Jouw besparing', 'Jouw gegevens']
 const MOBILE_STEP_LABELS = ['Verzuim', 'Loonsom', 'Wachttijd', 'Premie', 'Besparing', 'Gegevens']
 
-const WACHTDAGEN_META = {
-  10:  { hint: 'Tien werkdagen' },
-  20:  { hint: 'Drie weken' },
-  30:  { hint: 'Één maand' },
-  65:  { hint: 'Twee maanden' },
-  130: { hint: 'Vier maanden' },
-  261: { hint: 'Negen maanden' },
-}
 
 function formatLoonShort(v) {
   if (v >= 1_000_000) return `€ ${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M`
@@ -402,7 +394,6 @@ function Step3({ value, onChange, onBack, onNext }) {
             }`}>
             <div>
               <div className="text-[16px] font-semibold text-[#0B1530]">{d} dagen</div>
-              <div className="text-[12px] text-[#8089A8] mt-0.5">{WACHTDAGEN_META[d]?.hint}</div>
             </div>
             <div className={`w-[22px] h-[22px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 text-xs font-bold transition-all ${
               value === d
