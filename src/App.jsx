@@ -90,7 +90,7 @@ function MobileTopBar({ step }) {
 }
 
 // ── Sidebar ────────────────────────────────────────────────────────────────────
-function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
+function Sidebar({ step, verzuim, loon, wachttijd, premiePct, onStepClick }) {
   const verzuimLabel = { '0-2': '0–2%', '2-4': '2–4%', '4-6': '4–6%', '6-8': '6–8%', '8+': '8%+', unk: 'gem.' }
   const summaries = {
     1: verzuim ? verzuimLabel[verzuim] ?? null : null,
@@ -125,7 +125,11 @@ function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
           const isDone   = idx < step
           const isActive = idx === step || (step === 7 && idx === 6)
           return (
-            <div key={idx} className="flex items-center gap-3 py-3 border-b border-white/10 last:border-b-0">
+            <div
+              key={idx}
+              onClick={isDone && onStepClick ? () => onStepClick(idx) : undefined}
+              className={`flex items-center gap-3 py-3 border-b border-white/10 last:border-b-0 ${isDone && onStepClick ? 'cursor-pointer hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors' : ''}`}
+            >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0 ${
                 isDone   ? 'bg-[#1ABC9C] text-white' :
                 isActive ? 'bg-white text-[#1040C5]' :
@@ -661,6 +665,7 @@ export default function App() {
 
   const next = () => setStep((s) => s + 1)
   const back = () => setStep((s) => s - 1)
+  const goToStep = (targetStep) => { if (step !== 7 && targetStep < step) setStep(targetStep) }
 
   const computeResults = () => {
     const ep = jaarpremie && Number(jaarpremie) > 0 && loon > 0
@@ -680,7 +685,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex font-sans bg-[#FAFBFE]">
       {/* Desktop sidebar — hidden on mobile */}
-      <Sidebar step={step} verzuim={verzuim} loon={loon} wachttijd={wachttijd} premiePct={premiePct} />
+      <Sidebar step={step} verzuim={verzuim} loon={loon} wachttijd={wachttijd} premiePct={premiePct} onStepClick={goToStep} />
 
       {/* Content area */}
       <div className="flex-1 flex flex-col min-w-0">
