@@ -565,7 +565,7 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
 
   return (
     <div className="flex flex-col md:h-full">
-      <QHead num={5}
+      <QHead num={6}
         title="Naar wie sturen we jouw besparing?"
         helper="Persoonlijk overzicht in je inbox binnen 1 minuut. Geen verkooppraatjes. Eerlijke vergelijking met 6 verzekeraars."
       />
