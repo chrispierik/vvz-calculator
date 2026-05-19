@@ -373,7 +373,7 @@ function Step3({ value, onChange, onBack, onNext }) {
 
 // ── Step 4: Huidige premie ─────────────────────────────────────────────────────
 function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext }) {
-  const above = value > MARKT_GEMIDDELD
+  const above = value > 3
   const diff  = Math.abs(value - MARKT_GEMIDDELD)
   const pct   = (value / 12) * 100
   const euros = Math.round(loon * (value / 100))
