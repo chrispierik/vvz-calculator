@@ -154,7 +154,7 @@ function Sidebar({ step, verzuim, loon, wachttijd, premiePct }) {
             </svg>
           ))}
           <span className="text-white/70 text-sm font-semibold ml-1">4,8 / 5</span>
-          <span className="text-white/40 text-xs ml-1">· 312 reviews</span>
+          <span className="text-white/40 text-xs ml-1">· 20+ reviews</span>
         </div>
         <blockquote className="text-blue-200/80 text-sm italic leading-relaxed">
           "We bespaarden € 8.400 per jaar zonder iets in te leveren op de dekking. Alles via één gesprek."
