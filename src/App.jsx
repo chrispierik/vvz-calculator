@@ -307,7 +307,7 @@ function Step2({ value, onChange, onBack, onNext }) {
       {sliderValue === 3_000_000 && (
         <div className="mt-4 p-4 rounded-2xl bg-[#F4F7FD] border border-[#DCE0EC]">
           <p className="text-[13px] text-[#2A3454] mb-2">
-            Heb je een loonzone hoger dan 3 miljoen? Vul dan hier je exacte loonzone in.
+            Heb je een loonsom hoger dan 3 miljoen? Vul dan hier je exacte loonsom in.
           </p>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8089A8] font-medium text-[14px]">€</span>
