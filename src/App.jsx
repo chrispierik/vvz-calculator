@@ -271,7 +271,9 @@ function Step1({ value, onChange, onNext }) {
 
 // ── Step 2: Loonsom ────────────────────────────────────────────────────────────
 function Step2({ value, onChange, onBack, onNext }) {
-  const pct = ((value - 100_000) / 2_900_000) * 100
+  const [customLoon, setCustomLoon] = useState('')
+  const sliderValue = Math.min(value, 3_000_000)
+  const pct = ((sliderValue - 100_000) / 2_900_000) * 100
   return (
     <div className="flex flex-col md:h-full">
       <QHead num={2}
@@ -287,8 +289,12 @@ function Step2({ value, onChange, onBack, onNext }) {
       </div>
 
       <div className="mt-5 md:mt-6">
-        <input type="range" min={100_000} max={3_000_000} step={10_000} value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+        <input type="range" min={100_000} max={3_000_000} step={10_000} value={sliderValue}
+          onChange={(e) => {
+            const v = Number(e.target.value)
+            if (v < 3_000_000) setCustomLoon('')
+            onChange(v)
+          }}
           style={{ background: `linear-gradient(to right, #015EE1 ${pct}%, #E2E8F0 ${pct}%)` }}
           className="w-full rounded-full"
         />
@@ -298,9 +304,32 @@ function Step2({ value, onChange, onBack, onNext }) {
         </div>
       </div>
 
+      {sliderValue === 3_000_000 && (
+        <div className="mt-4 p-4 rounded-2xl bg-[#F4F7FD] border border-[#DCE0EC]">
+          <p className="text-[13px] text-[#2A3454] mb-2">
+            Heb je een loonzone hoger dan 3 miljoen? Vul dan hier je exacte loonzone in.
+          </p>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8089A8] font-medium text-[14px]">€</span>
+            <input
+              type="number"
+              min={3_000_001}
+              placeholder="Bijv. 4500000"
+              value={customLoon}
+              onChange={(e) => {
+                setCustomLoon(e.target.value)
+                const num = Number(e.target.value)
+                if (num > 3_000_000) onChange(num)
+              }}
+              className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-[#DCE0EC] bg-white text-[#0B1530] text-[15px] font-medium focus:outline-none focus:border-[#015EE1] focus:ring-2 focus:ring-[#015EE1]/20"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2 mt-4 md:mt-5">
         {LOON_CHIPS.map((chip) => (
-          <button key={chip.value} onClick={() => onChange(chip.value)}
+          <button key={chip.value} onClick={() => { setCustomLoon(''); onChange(chip.value) }}
             className={`px-4 py-2 rounded-full text-[13px] font-medium border transition-all ${
               value === chip.value
                 ? 'bg-[#0B1530] text-white border-[#0B1530]'
