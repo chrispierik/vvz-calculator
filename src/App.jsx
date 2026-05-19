@@ -203,9 +203,9 @@ function Nav({ onBack, onNext, nextLabel = 'Volgende →', nextDisabled = false,
         </button>
       </div>
 
-      {/* Mobile nav — sticky bottom */}
+      {/* Mobile nav — fixed bottom */}
       <div
-        className="md:hidden sticky bottom-0 z-10 -mx-5 border-t border-[#EBEEF5] px-5 pt-3.5 pb-7 flex items-center gap-2.5"
+        className="md:hidden fixed bottom-0 inset-x-0 z-10 border-t border-[#EBEEF5] px-5 pt-3.5 pb-7 flex items-center gap-2.5"
         style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}
       >
         {!hideBack ? (
@@ -601,9 +601,9 @@ function Step6({ besparing, form, onChange, onBack, onSubmit,
           </button>
         </div>
 
-        {/* Mobile submit — sticky bottom */}
+        {/* Mobile submit — fixed bottom */}
         <div
-          className="md:hidden sticky bottom-0 z-10 -mx-5 border-t border-[#EBEEF5] px-5 pt-3.5 pb-7 flex items-center gap-2.5"
+          className="md:hidden fixed bottom-0 inset-x-0 z-10 border-t border-[#EBEEF5] px-5 pt-3.5 pb-7 flex items-center gap-2.5"
           style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)' }}
         >
           <button type="button" onClick={onBack}
@@ -688,7 +688,7 @@ export default function App() {
         <MobileTopBar step={step} />
 
         {/* Main */}
-        <main className="flex-1 flex flex-col px-5 py-5 md:px-14 md:py-14" style={{ maxWidth: 760 }}>
+        <main className="flex-1 flex flex-col px-5 py-5 pb-28 md:pb-14 md:px-14 md:py-14" style={{ maxWidth: 760 }}>
           {step === 1 && <Step1 value={verzuim} onChange={setVerzuim} onNext={next} />}
           {step === 2 && <Step2 value={loon} onChange={setLoon} onBack={back} onNext={next} />}
           {step === 3 && <Step3 value={wachttijd} onChange={setWachttijd} onBack={back} onNext={next} />}
