@@ -471,10 +471,6 @@ function Step5({ results, effPct, onBack, onNext }) {
         </div>
       </div>
 
-      <p className="hidden md:block text-[12px] text-[#8089A8] italic leading-relaxed mb-2">
-        Schatting op basis van mandaat Fysiotherapie 100%/100%/70%/70%. De exacte premie volgt na een officiële offerteaanvraag.
-      </p>
-
       <Nav onBack={onBack} onNext={onNext} nextLabel="Claim deze besparing →" />
     </div>
   )
@@ -687,13 +683,6 @@ export default function App() {
               besparing={results?.besparing ?? 0} onRestart={restart} />
           )}
 
-          {step <= 6 && (
-            <p className="hidden md:block text-[11px] text-[#8089A8] italic border-t border-[#EBEEF5] pt-5 mt-auto leading-relaxed">
-              Deze berekening is een schatting op basis van het mandaat Fysiotherapie 100%/100%/70%/70%
-              en jouw opgegeven verzuimprofiel. De werkelijke premie wordt vastgesteld na een officiële offerteaanvraag.
-              Aan deze berekening kunnen geen rechten worden ontleend.
-            </p>
-          )}
         </main>
       </div>
     </div>
