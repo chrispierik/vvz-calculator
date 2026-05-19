@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Read(//usr/**)"
+      "Read(//usr/**)",
+      "Bash(curl -s -I https://verzekerverzuim.nl/favicon.ico)",
+      "Bash(curl -sL \"https://www.verzekerverzuim.nl/\")",
+      "Bash(curl -sL \"https://www.verzekerverzuim.nl/assets/favicons/verzekerverzuim.png\" -o /Users/chrispierik/vvz-calculator/public/favicon.png)"
     ]
   }
 }
