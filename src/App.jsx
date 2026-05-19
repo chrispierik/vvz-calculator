@@ -374,7 +374,7 @@ function Step3({ value, onChange, onBack, onNext }) {
 // ── Step 4: Huidige premie ─────────────────────────────────────────────────────
 function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext }) {
   const above = value > 3
-  const diff  = Math.abs(value - 3)
+  const diff  = above ? Math.round(((value - 3) / 3) * 100) : 0
   const pct   = (value / 12) * 100
   const euros = Math.round(loon * (value / 100))
 
@@ -392,7 +392,7 @@ function Step4({ value, onChange, jaarpremie, onJaarpremie, loon, onBack, onNext
         <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[12px] md:text-[13px] font-semibold mt-2 md:mt-3 ${
           above ? 'bg-[#FFF1EB] text-[#A8401A]' : 'bg-[#D6F2EB] text-[#0E7C66]'
         }`}>
-          {above ? `↑ ${diff.toFixed(1)}% boven het marktgemiddelde` : '↓ Op of onder het marktgemiddelde'}
+          {above ? `↑ ${diff}% boven het marktgemiddelde` : '↓ Op of onder het marktgemiddelde'}
         </span>
       </div>
 
